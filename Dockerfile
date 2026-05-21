@@ -25,24 +25,10 @@ COPY . .
 # Build Next.js
 RUN pnpm build
 
-# Runtime config — Next.js reads these
-ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
-ENV NODE_ENV=production
+# Make start script executable
+RUN chmod +x start.sh
 
+ENV NODE_ENV=production
 EXPOSE 3000
 
-# Start: create data dir, run migrations, serve
-CMD ["sh", "-c", "\
-  echo '=== pk_trades starting ===' && \
-  echo \"NODE_ENV=$NODE_ENV\" && \
-  echo \"DATABASE_PATH=$DATABASE_PATH\" && \
-  echo \"PORT=$PORT\" && \
-  echo \"HOSTNAME=$HOSTNAME\" && \
-  node -v && pnpm -v && \
-  mkdir -p \"$(dirname \"$DATABASE_PATH\")\" && \
-  echo 'Running migrations...' && \
-  pnpm db:migrate && \
-  echo 'Migrations done. Starting Next.js...' && \
-  exec pnpm start \
-"]
+CMD ["./start.sh"]
