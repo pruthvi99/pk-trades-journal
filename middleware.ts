@@ -52,6 +52,7 @@ export async function middleware(request: NextRequest) {
 		pathname === '/login' ||
 		pathname === '/design' ||
 		pathname.startsWith('/api/auth/') ||
+		pathname.startsWith('/api/admin/') ||
 		pathname.startsWith('/_next/') ||
 		pathname === '/favicon.ico'
 	) {

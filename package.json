@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "pnpm db:pull || echo '⚠  DB sync skipped (server offline or token missing) — using local DB'",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
@@ -19,7 +20,7 @@
     "db:migrate": "tsx lib/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
-    "db:pull": "tsx scripts/db-pull.ts",
+    "db:pull": "tsx --env-file=.env.local scripts/db-pull.ts",
     "db:push": "tsx scripts/db-push.ts",
     "check": "biome check . && tsc --noEmit && vitest run"
   },
