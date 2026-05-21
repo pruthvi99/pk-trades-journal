@@ -1,0 +1,9 @@
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
+  lefthook: true
+  sharp: true
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver

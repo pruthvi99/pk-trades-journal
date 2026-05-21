@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/* ============================================================
+   pk_trades design system — three colors, no exceptions
+   ============================================================ */
+
+:root {
+	/* Black family */
+	--pk-black: #000000;
+	--pk-black-raised: #0a0a0c;
+	--pk-black-sunken: #050507;
+	--pk-border: #1a1a1f;
+	--pk-border-strong: #2a2730;
+
+	/* White family */
+	--pk-white: #ece8f2;
+	--pk-white-muted: #b8b3c4;
+	--pk-white-dim: #6e687a;
+
+	/* Purple family */
+	--pk-purple: #7c5cfc;
+	--pk-purple-bright: #9b82ff;
+	--pk-purple-deep: #4a3580;
+	--pk-purple-faint: #1b1430;
+
+	/* Semantic — wins are white, losses are purple */
+	--pk-win: var(--pk-white);
+	--pk-loss: var(--pk-purple);
+
+	/* Radius */
+	--pk-radius: 6px;
+
+	/* Transitions */
+	--pk-duration: 150ms;
+	--pk-ease: ease-out;
+}
+
+/* Tailwind theme bridge */
+@theme inline {
+	--color-pk-black: var(--pk-black);
+	--color-pk-black-raised: var(--pk-black-raised);
+	--color-pk-black-sunken: var(--pk-black-sunken);
+	--color-pk-border: var(--pk-border);
+	--color-pk-border-strong: var(--pk-border-strong);
+	--color-pk-white: var(--pk-white);
+	--color-pk-white-muted: var(--pk-white-muted);
+	--color-pk-white-dim: var(--pk-white-dim);
+	--color-pk-purple: var(--pk-purple);
+	--color-pk-purple-bright: var(--pk-purple-bright);
+	--color-pk-purple-deep: var(--pk-purple-deep);
+	--color-pk-purple-faint: var(--pk-purple-faint);
+	--color-pk-win: var(--pk-win);
+	--color-pk-loss: var(--pk-loss);
+	--font-sans: "Inter", "Inter Display", system-ui, -apple-system, sans-serif;
+	--font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+}
+
+/* ============================================================
+   Reset & base
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+body {
+	margin: 0;
+	background: var(--pk-black);
+	color: var(--pk-white);
+	font-family: var(--font-sans);
+	font-size: 14px;
+	line-height: 1.5;
+	font-weight: 400;
+}
+
+/* ============================================================
+   Typography scale: 11 / 12 / 14 / 16 / 20 / 28 / 40
+   ============================================================ */
+
+.text-11 {
+	font-size: 11px;
+	line-height: 1.5;
+}
+.text-12 {
+	font-size: 12px;
+	line-height: 1.5;
+}
+.text-14 {
+	font-size: 14px;
+	line-height: 1.5;
+}
+.text-16 {
+	font-size: 16px;
+	line-height: 1.5;
+}
+.text-20 {
+	font-size: 20px;
+	line-height: 1.15;
+}
+.text-28 {
+	font-size: 28px;
+	line-height: 1.15;
+}
+.text-40 {
+	font-size: 40px;
+	line-height: 1.15;
+}
+
+/* Eyebrow — small caps section label */
+.eyebrow {
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--pk-white-dim);
+}
+
+/* ============================================================
+   Tabular numerals — always on numeric data
+   ============================================================ */
+
+.tabular-nums {
+	font-variant-numeric: tabular-nums;
+	font-family: var(--font-mono);
+}
+
+/* ============================================================
+   Focus states — keyboard users matter
+   ============================================================ */
+
+:focus-visible {
+	outline: none;
+}
+
+/* ============================================================
+   Scrollbar — minimal, dark
+   ============================================================ */
+
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--pk-border-strong);
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--pk-white-dim);
+}
+
+/* ============================================================
+   Selection
+   ============================================================ */
+
+::selection {
+	background: var(--pk-purple-deep);
+	color: var(--pk-white);
+}
