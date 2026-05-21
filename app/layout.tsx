@@ -7,6 +7,10 @@ import './globals.css';
 export const metadata: Metadata = {
 	title: 'pk_trades',
 	description: 'Trade journal',
+	icons: {
+		icon: '/logo.png',
+		apple: '/logo.png',
+	},
 };
 
 export default function RootLayout({
