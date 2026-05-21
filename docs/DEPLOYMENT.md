@@ -1,81 +1,96 @@
-# Deployment — Render.com
+# Deployment — Railway
 
 ## Prerequisites
 
-- Render account (Starter plan, $7/mo)
-- GitHub repo connected to Render
+- Railway account (railway.app — Hobby plan $5/mo)
+- GitLab repo connected to Railway
 
-## Setup
+## Setup (~10 minutes)
 
-### 1. Create the web service
+### 1. Create a new project
 
-1. Go to Render Dashboard → New → Web Service
-2. Connect your GitHub repo
-3. Render will auto-detect `render.yaml` — use it as a blueprint
-4. Or manually configure:
-   - **Runtime:** Node
-   - **Plan:** Starter
-   - **Build command:** `pnpm install --frozen-lockfile && pnpm build`
-   - **Start command:** `pnpm db:migrate && pnpm start`
+1. Go to **railway.app** → "New Project"
+2. Click **"Deploy from GitLab"** → authorize GitLab → select `pk-trades-journal`
+3. Railway detects `railway.toml` automatically — build + start commands are pre-configured
 
-### 2. Create a persistent disk
-
-- **Name:** pk-trades-data
-- **Mount path:** `/var/data`
-- **Size:** 1 GB
+### 2. Add a persistent volume
 
 This is critical. Without it, the SQLite database is lost on every deploy.
 
+1. In your Railway project → click your service → **"Volumes"** tab
+2. Click **"Add Volume"**
+   - Mount path: `/data`
+   - Size: 1 GB (can expand later)
+3. Click **"Add"**
+
 ### 3. Set environment variables
 
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `NODE_ENV` | `production` | Auto-set by Render |
-| `DATABASE_PATH` | `/var/data/pk_trades.db` | On the persistent disk |
-| `SESSION_SECRET` | (generate 32+ random chars) | Use `openssl rand -hex 32` |
-| `ADMIN_PASSWORD` | (your login password) | Set manually |
-| `ADMIN_SYNC_TOKEN` | (generate long random token) | For db:pull/push |
-| `TZ` | `America/Chicago` | Or your timezone |
+In your Railway service → **"Variables"** tab, add these:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_PATH` | `/data/pk_trades.db` |
+| `SESSION_SECRET` | Run `openssl rand -hex 32` → paste output |
+| `ADMIN_PASSWORD` | Your login password |
+| `ADMIN_SYNC_TOKEN` | Run `openssl rand -hex 32` → paste output |
+| `NODE_ENV` | `production` |
+| `TZ` | `America/Chicago` (or your timezone) |
+
+Click **"Deploy"** after saving variables.
 
 ### 4. Deploy
 
-Push to main. Render will:
-1. Install dependencies (`pnpm install --frozen-lockfile`)
-2. Build the Next.js app (`pnpm build`)
-3. Run migrations on startup (`pnpm db:migrate`)
-4. Start the server (`pnpm start`)
+Railway auto-deploys on every `git push` to your GitLab `main` branch.
 
-### 5. Set up nightly backups
+First deploy takes ~3-4 minutes (installs deps + builds Next.js).
 
-Add a Render cron job:
-- **Schedule:** `0 6 * * *` (6 AM UTC daily)
-- **Command:** `curl -X POST https://pk-trades.onrender.com/api/admin/backup -H "x-pk-sync-token: YOUR_TOKEN"`
-
-Or use Render's built-in cron jobs to hit the backup endpoint.
-
-## Verify persistent disk
+### 5. Verify persistent volume
 
 1. Log a trade through the UI
-2. Trigger a manual deploy (push an empty commit)
-3. After deploy, verify the trade still exists
+2. Trigger a manual redeploy: Railway dashboard → "Deploy" → "Redeploy"
+3. After it completes, check that your trade still exists ✓
+
+---
+
+## Every future deploy
+
+```bash
+git add .
+git commit -m "your change"
+git push
+```
+
+Railway picks it up automatically. The `/data/pk_trades.db` volume is never
+touched by deploys — only `pnpm db:migrate` runs (safe, additive-only).
+
+---
 
 ## Rollback
 
-Render keeps recent deploys. To rollback:
-1. Go to Render Dashboard → your service → Deploys
-2. Click "Rollback" on a previous successful deploy
+Railway keeps deploy history. To rollback:
+1. Railway dashboard → your service → "Deployments"
+2. Click the three dots on a previous successful deploy → "Rollback"
 
-For data rollback:
-1. Backups are in `/var/data/backups/`
-2. SSH into the Render instance (Starter plan supports shell access)
-3. Copy the backup over the live database:
-   ```bash
-   cp /var/data/backups/pk_trades-YYYY-MM-DD.db /var/data/pk_trades.db
-   ```
-4. Restart the service
+For data rollback, use backups stored in `/data/backups/`:
+```bash
+# Railway shell (service → "Shell" tab)
+cp /data/backups/pk_trades-YYYY-MM-DD.db /data/pk_trades.db
+```
+Then redeploy.
+
+---
+
+## Nightly backups (optional)
+
+Add a Railway cron job or use an external cron (cron-job.org, free):
+- URL: `https://YOUR-APP.railway.app/api/admin/backup`
+- Method: POST
+- Header: `x-pk-sync-token: YOUR_ADMIN_SYNC_TOKEN`
+- Schedule: `0 6 * * *` (6 AM UTC daily)
+
+---
 
 ## Monitoring
 
-- Render provides basic CPU/memory graphs
-- Check `/api/metrics` for application-level health (trade counts, etc.)
-- Backup route returns the number of backups and last backup path
+- Railway provides CPU/memory/network graphs per deploy
+- Check `/api/metrics` for trade-level health
