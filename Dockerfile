@@ -25,8 +25,8 @@ COPY . .
 # Build Next.js
 RUN pnpm build
 
-# Make start script executable
-RUN chmod +x start.sh
+# Strip Windows CRLF line endings (breaks sh on Linux) and make executable
+RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
 
 ENV NODE_ENV=production
 EXPOSE 3000
