@@ -99,7 +99,7 @@ export function TopNav() {
 
 	return (
 		<header className="sticky top-0 z-40 border-b border-pk-border bg-pk-black/90 backdrop-blur-md">
-			<div className="flex h-12 items-center px-4 sm:px-6">
+			<div className="flex h-14 sm:h-12 items-center px-4 sm:px-6">
 				{/* Logo */}
 				<Link href="/journal" className="shrink-0 mr-6 flex items-center gap-2">
 					{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -123,7 +123,7 @@ export function TopNav() {
 								key={item.href}
 								href={item.href}
 								className={cn(
-									'flex items-center gap-1.5 px-2.5 py-1.5 rounded-[6px] text-[13px] font-medium',
+									'flex items-center gap-1.5 px-3 sm:px-2.5 py-2 sm:py-1.5 rounded-[6px] text-[14px] sm:text-[13px] font-medium',
 									'transition-colors duration-150 ease-out',
 									active
 										? 'bg-pk-purple-faint text-pk-white'
@@ -132,11 +132,11 @@ export function TopNav() {
 							>
 								<svg
 									aria-hidden="true"
-									width="16"
-									height="16"
+									width="20"
+									height="20"
 									viewBox="0 0 20 20"
 									fill="none"
-									className="shrink-0"
+									className="shrink-0 sm:w-4 sm:h-4"
 								>
 									{item.icon}
 								</svg>

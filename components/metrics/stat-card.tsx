@@ -21,7 +21,9 @@ export function StatCard({ label, value, suffix, variant = 'neutral' }: StatCard
 
 	return (
 		<div className="rounded-[6px] border border-pk-border bg-pk-black-raised px-4 py-3">
-			<p className="text-[11px] text-pk-white-dim font-medium uppercase tracking-wider">{label}</p>
+			<p className="text-[12px] sm:text-[11px] text-pk-white-dim font-medium uppercase tracking-wider">
+				{label}
+			</p>
 			<p className={`text-[20px] font-medium font-mono tabular-nums mt-1 ${valueColor}`}>
 				{value}
 				{suffix && <span className="text-[13px] text-pk-white-dim ml-1">{suffix}</span>}

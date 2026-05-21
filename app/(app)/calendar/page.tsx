@@ -128,7 +128,7 @@ function DayCell({ dayNum, dateStr, dayData, isToday, displayValue }: DayCellPro
 			}}
 		>
 			<span
-				className="text-[11px] sm:text-[12px] font-medium leading-none"
+				className="text-[13px] sm:text-[12px] font-medium leading-none"
 				style={{ color: numColor }}
 			>
 				{dayNum}
@@ -288,7 +288,7 @@ export default function CalendarPage() {
 							<button
 								type="button"
 								onClick={goToToday}
-								className="text-[11px] text-pk-purple hover:text-pk-purple-bright transition-colors"
+								className="text-[13px] sm:text-[11px] text-pk-purple hover:text-pk-purple-bright transition-colors"
 							>
 								Today
 							</button>
@@ -360,7 +360,7 @@ export default function CalendarPage() {
 					{WEEKDAYS.map((day) => (
 						<div
 							key={day}
-							className="py-2 text-center text-[11px] font-medium text-pk-white-dim tracking-wider"
+							className="py-2 text-center text-[12px] sm:text-[11px] font-medium text-pk-white-dim tracking-wider"
 						>
 							{day}
 						</div>
@@ -425,7 +425,7 @@ export default function CalendarPage() {
 					<div className="w-3 h-3 rounded-[2px] border border-pk-purple/60" />
 					<span>Today</span>
 				</div>
-				<span className="ml-auto text-[11px]">Click any day to view trades</span>
+				<span className="ml-auto text-[13px] sm:text-[11px]">Click any day to view trades</span>
 			</div>
 		</div>
 	);

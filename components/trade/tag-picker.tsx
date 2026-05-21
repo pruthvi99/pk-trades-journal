@@ -81,7 +81,7 @@ export function TagPicker({ tags, selected, onChange, onCreateTag }: TagPickerPr
 							key={tag.id}
 							type="button"
 							onClick={() => toggle(tag.id)}
-							className="inline-flex items-center gap-1 rounded-[4px] bg-pk-purple-faint px-1.5 py-0.5 text-[11px] text-pk-white hover:bg-pk-purple-faint/70 transition-colors"
+							className="inline-flex items-center gap-1 rounded-[4px] bg-pk-purple-faint px-2 sm:px-1.5 py-1 sm:py-0.5 text-[13px] sm:text-[11px] text-pk-white hover:bg-pk-purple-faint/70 transition-colors"
 						>
 							{tag.label}
 							<span className="text-pk-white-dim">×</span>

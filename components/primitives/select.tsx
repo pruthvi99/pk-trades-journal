@@ -20,7 +20,7 @@ export const SelectTrigger = forwardRef<
 	<SelectPrimitive.Trigger
 		ref={ref}
 		className={cn(
-			'flex h-8 w-full items-center justify-between rounded-[6px] border border-pk-border bg-pk-black-sunken px-3 text-[13px] text-pk-white',
+			'flex h-11 sm:h-8 w-full items-center justify-between rounded-[6px] border border-pk-border bg-pk-black-sunken px-4 sm:px-3 text-[16px] sm:text-[13px] text-pk-white',
 			'transition-colors duration-150 ease-out',
 			'hover:border-pk-border-strong',
 			'focus-visible:outline-none focus-visible:border-pk-purple focus-visible:shadow-[0_0_0_1px_rgba(124,92,252,0.15),0_0_8px_rgba(124,92,252,0.1)]',
@@ -90,7 +90,7 @@ export const SelectItem = forwardRef<
 	<SelectPrimitive.Item
 		ref={ref}
 		className={cn(
-			'relative flex w-full cursor-pointer select-none items-center rounded-[4px] py-1.5 px-2 text-[13px] text-pk-white-muted outline-none',
+			'relative flex w-full cursor-pointer select-none items-center rounded-[4px] py-3 sm:py-1.5 px-3 sm:px-2 text-[16px] sm:text-[13px] text-pk-white-muted outline-none',
 			'hover:bg-pk-purple-faint hover:text-pk-white',
 			'focus:bg-pk-purple-faint focus:text-pk-white',
 			'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
@@ -110,7 +110,7 @@ export const SelectLabel = forwardRef<
 	<SelectPrimitive.Label
 		ref={ref}
 		className={cn(
-			'px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-pk-white-dim',
+			'px-3 sm:px-2 py-2 sm:py-1.5 text-[13px] sm:text-[11px] font-medium uppercase tracking-wider text-pk-white-dim',
 			className,
 		)}
 		{...props}

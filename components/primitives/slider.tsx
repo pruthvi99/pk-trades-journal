@@ -18,10 +18,10 @@ export const Slider = forwardRef<
 		className={cn('relative flex w-full touch-none select-none items-center', className)}
 		{...props}
 	>
-		<SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden rounded-full bg-pk-border">
+		<SliderPrimitive.Track className="relative h-2 sm:h-1 w-full grow overflow-hidden rounded-full bg-pk-border">
 			<SliderPrimitive.Range className="absolute h-full bg-pk-purple" />
 		</SliderPrimitive.Track>
-		<SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-pk-border-strong bg-pk-black-raised shadow transition-colors hover:bg-pk-purple-faint focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_rgba(124,92,252,0.3),0_0_8px_rgba(124,92,252,0.15)] disabled:pointer-events-none disabled:opacity-40" />
+		<SliderPrimitive.Thumb className="block h-6 w-6 sm:h-4 sm:w-4 rounded-full border border-pk-border-strong bg-pk-black-raised shadow transition-colors hover:bg-pk-purple-faint focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_rgba(124,92,252,0.3),0_0_8px_rgba(124,92,252,0.15)] disabled:pointer-events-none disabled:opacity-40" />
 	</SliderPrimitive.Root>
 ));
 Slider.displayName = 'Slider';

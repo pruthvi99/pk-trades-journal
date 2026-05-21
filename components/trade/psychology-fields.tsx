@@ -61,7 +61,9 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 
 			{/* Conviction */}
 			<div>
-				<label className="text-[11px] text-pk-white-dim mb-1 block">Conviction / thesis</label>
+				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+					Conviction / thesis
+				</label>
 				<Input
 					placeholder="Why this trade?"
 					value={data.preConviction ?? ''}
@@ -71,7 +73,9 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 
 			{/* Mood */}
 			<div>
-				<label className="text-[11px] text-pk-white-dim mb-1 block">Mood</label>
+				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+					Mood
+				</label>
 				<Select value={data.preMood ?? ''} onValueChange={(v) => update('preMood', v || undefined)}>
 					<SelectTrigger>
 						<SelectValue placeholder="Select mood…" />
@@ -89,7 +93,9 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 			{/* Sleep + Caffeine row */}
 			<div className="grid grid-cols-2 gap-3">
 				<div>
-					<label className="text-[11px] text-pk-white-dim mb-1 block">Sleep (hours)</label>
+					<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+						Sleep (hours)
+					</label>
 					<Input
 						numeric
 						type="number"
@@ -104,13 +110,15 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 					/>
 				</div>
 				<div className="flex flex-col">
-					<label className="text-[11px] text-pk-white-dim mb-1">Caffeine</label>
-					<div className="flex items-center gap-2 h-8">
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1">Caffeine</label>
+					<div className="flex items-center gap-3 h-11 sm:h-8">
 						<Toggle
 							checked={data.preCaffeine ?? false}
 							onCheckedChange={(v) => update('preCaffeine', v || undefined)}
 						/>
-						<span className="text-[12px] text-pk-white-dim">{data.preCaffeine ? 'Yes' : 'No'}</span>
+						<span className="text-[14px] sm:text-[12px] text-pk-white-dim">
+							{data.preCaffeine ? 'Yes' : 'No'}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -164,7 +172,9 @@ export function DuringPsychologyFields({ data, onChange }: DuringPsychologyField
 				/>
 			</div>
 			<div>
-				<label className="text-[11px] text-pk-white-dim mb-1 block">Deviations from plan</label>
+				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+					Deviations from plan
+				</label>
 				<Input
 					placeholder="Any adjustments or deviations?"
 					value={data.duringDeviations ?? ''}
@@ -213,7 +223,9 @@ export function PostPsychologyFields({ data, onChange }: PostPsychologyFieldsPro
 				/>
 			</div>
 			<div>
-				<label className="text-[11px] text-pk-white-dim mb-1 block">Mood</label>
+				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+					Mood
+				</label>
 				<Select
 					value={data.postMood ?? ''}
 					onValueChange={(v) => update('postMood', v || undefined)}
@@ -231,7 +243,9 @@ export function PostPsychologyFields({ data, onChange }: PostPsychologyFieldsPro
 				</Select>
 			</div>
 			<div>
-				<label className="text-[11px] text-pk-white-dim mb-1 block">Mistakes</label>
+				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+					Mistakes
+				</label>
 				<Input
 					placeholder="What went wrong?"
 					value={data.postMistakes ?? ''}
@@ -239,7 +253,9 @@ export function PostPsychologyFields({ data, onChange }: PostPsychologyFieldsPro
 				/>
 			</div>
 			<div>
-				<label className="text-[11px] text-pk-white-dim mb-1 block">Lessons</label>
+				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+					Lessons
+				</label>
 				<Input
 					placeholder="Key takeaway?"
 					value={data.postLessons ?? ''}

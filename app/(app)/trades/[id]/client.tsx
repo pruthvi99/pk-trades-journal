@@ -322,7 +322,7 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 										{new Date(exec.executedAt).toLocaleString()}
 									</span>
 									{exec.feesUsd > 0 && (
-										<span className="text-[11px] text-pk-white-dim ml-auto">
+										<span className="text-[13px] sm:text-[11px] text-pk-white-dim ml-auto">
 											Fees: ${exec.feesUsd.toFixed(2)}
 										</span>
 									)}
@@ -535,14 +535,14 @@ function PsychField({
 	if (value == null) {
 		return (
 			<div>
-				<span className="text-[11px] text-pk-white-dim">{label}</span>
+				<span className="text-[13px] sm:text-[11px] text-pk-white-dim">{label}</span>
 				<p className="text-[13px] text-pk-white-dim">—</p>
 			</div>
 		);
 	}
 	return (
 		<div>
-			<span className="text-[11px] text-pk-white-dim">{label}</span>
+			<span className="text-[13px] sm:text-[11px] text-pk-white-dim">{label}</span>
 			<p className="text-[13px] text-pk-white">
 				{String(value)}
 				{suffix}

@@ -14,7 +14,7 @@ export function Badge({ className, variant = 'default', ...props }: BadgeProps) 
 	return (
 		<span
 			className={cn(
-				'inline-flex items-center rounded-[4px] px-1.5 py-0.5 text-[11px] font-medium leading-none',
+				'inline-flex items-center rounded-[4px] px-2 sm:px-1.5 py-1 sm:py-0.5 text-[13px] sm:text-[11px] font-medium leading-none',
 				variant === 'default' && 'bg-pk-purple-faint text-pk-purple-bright',
 				variant === 'win' && 'bg-pk-purple-faint text-pk-white',
 				variant === 'loss' && 'bg-pk-purple-faint text-pk-purple',

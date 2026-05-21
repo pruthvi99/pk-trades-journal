@@ -192,7 +192,9 @@ export default function SettingsPage() {
 					<>
 						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Timezone</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Timezone
+								</label>
 								<Select
 									value={settingsMap.timezone ?? 'America/Chicago'}
 									onValueChange={(v) => updateSetting('timezone', v)}
@@ -210,7 +212,7 @@ export default function SettingsPage() {
 								</Select>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 									Starting balance ($)
 								</label>
 								<Input
@@ -222,7 +224,7 @@ export default function SettingsPage() {
 								/>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 									Commission / contract ($)
 								</label>
 								<Input
@@ -234,7 +236,7 @@ export default function SettingsPage() {
 								/>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 									Commission / share ($)
 								</label>
 								<Input
@@ -268,7 +270,9 @@ export default function SettingsPage() {
 				<p className="eyebrow">Strategies</p>
 				<div className="flex flex-wrap gap-2 items-end">
 					<div className="flex-1 min-w-[140px]">
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Name</label>
+						<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Name
+						</label>
 						<Input
 							placeholder="e.g. Bull Put Spread"
 							value={newStratName}
@@ -276,7 +280,9 @@ export default function SettingsPage() {
 						/>
 					</div>
 					<div className="flex-1 min-w-[140px]">
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Description</label>
+						<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Description
+						</label>
 						<Input
 							placeholder="Optional"
 							value={newStratDesc}
@@ -284,7 +290,9 @@ export default function SettingsPage() {
 						/>
 					</div>
 					<div className="w-32">
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Instrument</label>
+						<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Instrument
+						</label>
 						<Select value={newStratInstrument} onValueChange={setNewStratInstrument}>
 							<SelectTrigger>
 								<SelectValue placeholder="Any" />
@@ -346,7 +354,9 @@ export default function SettingsPage() {
 				<p className="eyebrow">Tags</p>
 				<div className="flex flex-wrap gap-2 items-end">
 					<div className="flex-1 min-w-[140px]">
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Label</label>
+						<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Label
+						</label>
 						<Input
 							placeholder="e.g. earnings play"
 							value={newTagLabel}
@@ -354,7 +364,9 @@ export default function SettingsPage() {
 						/>
 					</div>
 					<div className="w-36">
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Category</label>
+						<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Category
+						</label>
 						<Select value={newTagCategory} onValueChange={setNewTagCategory}>
 							<SelectTrigger>
 								<SelectValue />
@@ -417,7 +429,9 @@ export default function SettingsPage() {
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-[13px] text-pk-white">Export database</p>
-							<p className="text-[11px] text-pk-white-dim">Download the SQLite database file.</p>
+							<p className="text-[13px] sm:text-[11px] text-pk-white-dim">
+								Download the SQLite database file.
+							</p>
 						</div>
 						<Button
 							variant="ghost"

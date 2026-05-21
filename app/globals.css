@@ -124,6 +124,21 @@ body {
 }
 
 /* ============================================================
+   Mobile — larger tap targets and readable text
+   ============================================================ */
+
+@media (max-width: 639px) {
+	body {
+		font-size: 15px;
+	}
+
+	.eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.06em;
+	}
+}
+
+/* ============================================================
    Tabular numerals — always on numeric data
    ============================================================ */
 

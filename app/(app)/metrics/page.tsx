@@ -317,7 +317,7 @@ export default function MetricsPage() {
 						variant={psychology.wouldRetakeRate >= 70 ? 'win' : 'neutral'}
 					/>
 					<div className="rounded-[6px] border border-pk-border bg-pk-black-raised px-4 py-3">
-						<p className="text-[11px] text-pk-white-dim font-medium uppercase tracking-wider">
+						<p className="text-[12px] sm:text-[11px] text-pk-white-dim font-medium uppercase tracking-wider">
 							Sleep &amp; Win Rate
 						</p>
 						<div className="mt-2 space-y-1">
@@ -342,7 +342,7 @@ export default function MetricsPage() {
 				{/* Win rate by mood */}
 				{psychology.winRateByMood.length > 0 && (
 					<div className="rounded-[6px] border border-pk-border bg-pk-black-raised p-4">
-						<p className="text-[11px] text-pk-white-dim font-medium uppercase tracking-wider mb-3">
+						<p className="text-[12px] sm:text-[11px] text-pk-white-dim font-medium uppercase tracking-wider mb-3">
 							Win rate by mood
 						</p>
 						<div className="flex flex-wrap gap-3">
@@ -359,7 +359,7 @@ export default function MetricsPage() {
 									>
 										{m.winPercent.toFixed(0)}%
 									</span>
-									<span className="text-[11px] text-pk-white-dim">({m.trades})</span>
+									<span className="text-[13px] sm:text-[11px] text-pk-white-dim">({m.trades})</span>
 								</div>
 							))}
 						</div>

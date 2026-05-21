@@ -62,7 +62,7 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 				<p className="eyebrow">Stock execution</p>
 				<div className="grid grid-cols-3 gap-3">
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Side</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Side</label>
 						<Select
 							value={leg.side}
 							onValueChange={(v) => onChange([{ ...leg, side: v as 'buy' | 'sell' }])}
@@ -77,7 +77,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 						</Select>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Shares</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Shares
+						</label>
 						<Input
 							numeric
 							type="number"
@@ -89,7 +91,7 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 						/>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Price</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Price</label>
 						<Input
 							numeric
 							type="number"
@@ -119,7 +121,7 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 					className="rounded-[6px] border border-pk-border bg-pk-black-sunken p-3 space-y-3"
 				>
 					<div className="flex items-center justify-between">
-						<span className="text-[12px] text-pk-white-dim">Leg {i + 1}</span>
+						<span className="text-[14px] sm:text-[12px] text-pk-white-dim">Leg {i + 1}</span>
 						{legs.length > 1 && (
 							<Button variant="ghost" size="small" type="button" onClick={() => removeLeg(i)}>
 								Remove
@@ -128,7 +130,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 					</div>
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Side</label>
+							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Side
+							</label>
 							<Select value={leg.side} onValueChange={(v) => updateLeg(i, 'side', v)}>
 								<SelectTrigger>
 									<SelectValue />
@@ -140,7 +144,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 							</Select>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Type</label>
+							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Type
+							</label>
 							<Select
 								value={leg.optionType ?? 'put'}
 								onValueChange={(v) => updateLeg(i, 'optionType', v)}
@@ -155,7 +161,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 							</Select>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Strike</label>
+							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Strike
+							</label>
 							<Input
 								numeric
 								type="number"
@@ -168,7 +176,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 							/>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Expiration</label>
+							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Expiration
+							</label>
 							<Input
 								type="date"
 								value={leg.expiration ?? ''}
@@ -176,7 +186,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 							/>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Contracts</label>
+							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Contracts
+							</label>
 							<Input
 								numeric
 								type="number"
@@ -188,7 +200,9 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 							/>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Price</label>
+							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Price
+							</label>
 							<Input
 								numeric
 								type="number"

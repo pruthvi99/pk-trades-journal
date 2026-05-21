@@ -28,8 +28,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 					'focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_rgba(124,92,252,0.3),0_0_8px_rgba(124,92,252,0.15)]',
 					'disabled:pointer-events-none disabled:opacity-40',
 					// Size
-					size === 'default' && 'h-8 px-3 text-[13px] rounded-[6px]',
-					size === 'small' && 'h-7 px-2.5 text-[12px] rounded-[5px]',
+					size === 'default' && 'h-11 sm:h-8 px-4 sm:px-3 text-[15px] sm:text-[13px] rounded-[6px]',
+					size === 'small' && 'h-9 sm:h-7 px-3 sm:px-2.5 text-[14px] sm:text-[12px] rounded-[5px]',
 					// Variant
 					variant === 'primary' &&
 						'bg-pk-purple text-white hover:bg-pk-purple-bright active:bg-pk-purple-deep',

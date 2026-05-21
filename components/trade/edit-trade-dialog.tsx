@@ -203,11 +203,15 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 						<p className="eyebrow">Identity</p>
 						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Symbol</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Symbol
+								</label>
 								<Input value={symbol} onChange={(e) => setSymbol(e.target.value.toUpperCase())} />
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Instrument</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Instrument
+								</label>
 								<Select
 									value={instrument}
 									onValueChange={(v) => setInstrument(v as 'option_spread' | 'stock')}
@@ -222,7 +226,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								</Select>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Direction</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Direction
+								</label>
 								<Select
 									value={direction}
 									onValueChange={(v) => setDirection(v as 'long' | 'short' | 'neutral')}
@@ -238,7 +244,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								</Select>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Strategy</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Strategy
+								</label>
 								<Select value={strategyId} onValueChange={setStrategyId}>
 									<SelectTrigger>
 										<SelectValue placeholder="Select..." />
@@ -267,7 +275,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 						</div>
 						<div className="grid grid-cols-3 gap-3">
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Entry</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Entry
+								</label>
 								<Input
 									numeric
 									type="number"
@@ -278,7 +288,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								/>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Stop</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Stop
+								</label>
 								<Input
 									numeric
 									type="number"
@@ -289,7 +301,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								/>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Target</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Target
+								</label>
 								<Input
 									numeric
 									type="number"
@@ -300,7 +314,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								/>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Size</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Size
+								</label>
 								<Input
 									numeric
 									type="number"
@@ -310,7 +326,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								/>
 							</div>
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Risk ($)</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Risk ($)
+								</label>
 								<Input
 									numeric
 									type="number"
@@ -327,7 +345,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 					<div className="space-y-3">
 						<p className="eyebrow">Reasoning</p>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Tags</label>
+							<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Tags
+							</label>
 							<TagPicker
 								tags={tagsList}
 								selected={tagIds}
@@ -336,7 +356,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 							/>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Notes</label>
+							<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Notes
+							</label>
 							<textarea
 								value={notesMd}
 								onChange={(e) => setNotesMd(e.target.value)}
@@ -368,7 +390,7 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 							/>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">
+							<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 								Conviction / thesis
 							</label>
 							<Input
@@ -378,7 +400,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 							/>
 						</div>
 						<div>
-							<label className="text-[11px] text-pk-white-dim mb-1 block">Mood</label>
+							<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+								Mood
+							</label>
 							<Select value={preMood} onValueChange={setPreMood}>
 								<SelectTrigger>
 									<SelectValue placeholder="Select mood..." />
@@ -394,7 +418,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 						</div>
 						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<label className="text-[11px] text-pk-white-dim mb-1 block">Sleep (hours)</label>
+								<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Sleep (hours)
+								</label>
 								<Input
 									numeric
 									type="number"
@@ -406,7 +432,9 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 								/>
 							</div>
 							<div className="flex flex-col">
-								<label className="text-[11px] text-pk-white-dim mb-1">Caffeine</label>
+								<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1">
+									Caffeine
+								</label>
 								<div className="flex items-center gap-2 h-8">
 									<Toggle checked={preCaffeine} onCheckedChange={setPreCaffeine} />
 									<span className="text-[12px] text-pk-white-dim">

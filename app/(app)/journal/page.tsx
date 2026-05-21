@@ -177,7 +177,7 @@ function JournalContent() {
 					</span>
 					<Link
 						href="/calendar"
-						className="text-[11px] text-pk-white-dim hover:text-pk-purple-bright transition-colors"
+						className="text-[13px] sm:text-[11px] text-pk-white-dim hover:text-pk-purple-bright transition-colors"
 					>
 						← Back to calendar
 					</Link>
@@ -230,11 +230,11 @@ function JournalContent() {
 				<button
 					type="button"
 					onClick={() => setDense(!dense)}
-					className="text-[11px] text-pk-white-dim hover:text-pk-white transition-colors px-2"
+					className="text-[13px] sm:text-[11px] text-pk-white-dim hover:text-pk-white transition-colors px-2"
 				>
 					{dense ? 'Comfortable' : 'Dense'}
 				</button>
-				<span className="text-[11px] text-pk-white-dim ml-auto">{total} trades</span>
+				<span className="text-[13px] sm:text-[11px] text-pk-white-dim ml-auto">{total} trades</span>
 			</div>
 
 			{/* Table */}

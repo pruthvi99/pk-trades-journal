@@ -196,7 +196,9 @@ export default function NewTradePage() {
 				<p className="eyebrow">Identity</p>
 				<div className="grid grid-cols-2 gap-3">
 					<div className="relative">
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Symbol</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Symbol
+						</label>
 						<Input
 							placeholder="SPX"
 							value={symbol}
@@ -210,7 +212,7 @@ export default function NewTradePage() {
 										key={s}
 										type="button"
 										onClick={() => setSymbol(s)}
-										className="block w-full px-3 py-1.5 text-left text-[13px] text-pk-white-muted hover:bg-pk-purple-faint hover:text-pk-white"
+										className="block w-full px-4 sm:px-3 py-3 sm:py-1.5 text-left text-[16px] sm:text-[13px] text-pk-white-muted hover:bg-pk-purple-faint hover:text-pk-white"
 									>
 										{s}
 									</button>
@@ -219,7 +221,9 @@ export default function NewTradePage() {
 						)}
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Instrument</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Instrument
+						</label>
 						<Select
 							value={instrument}
 							onValueChange={(v) => setInstrument(v as 'option_spread' | 'stock')}
@@ -234,7 +238,9 @@ export default function NewTradePage() {
 						</Select>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Direction</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Direction
+						</label>
 						<Select
 							value={direction}
 							onValueChange={(v) => setDirection(v as 'long' | 'short' | 'neutral')}
@@ -250,7 +256,9 @@ export default function NewTradePage() {
 						</Select>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Strategy</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Strategy
+						</label>
 						<Select value={strategyId} onValueChange={setStrategyId}>
 							<SelectTrigger>
 								<SelectValue placeholder="Select…" />
@@ -266,7 +274,9 @@ export default function NewTradePage() {
 					</div>
 				</div>
 				<div>
-					<label className="text-[11px] text-pk-white-dim mb-1 block">Opened at</label>
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+						Opened at
+					</label>
 					<Input
 						type="datetime-local"
 						value={openedAt}
@@ -287,7 +297,7 @@ export default function NewTradePage() {
 				</div>
 				<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Entry</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Entry</label>
 						<Input
 							numeric
 							type="number"
@@ -298,7 +308,7 @@ export default function NewTradePage() {
 						/>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Stop</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Stop</label>
 						<Input
 							numeric
 							type="number"
@@ -309,7 +319,9 @@ export default function NewTradePage() {
 						/>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Target</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Target
+						</label>
 						<Input
 							numeric
 							type="number"
@@ -320,7 +332,7 @@ export default function NewTradePage() {
 						/>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Size</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Size</label>
 						<Input
 							numeric
 							type="number"
@@ -330,7 +342,9 @@ export default function NewTradePage() {
 						/>
 					</div>
 					<div>
-						<label className="text-[11px] text-pk-white-dim mb-1 block">Risk ($)</label>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Risk ($)
+						</label>
 						<Input
 							numeric
 							type="number"
@@ -353,7 +367,7 @@ export default function NewTradePage() {
 			<section className="space-y-4">
 				<p className="eyebrow">Reasoning</p>
 				<div>
-					<label className="text-[11px] text-pk-white-dim mb-1 block">Tags</label>
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Tags</label>
 					<TagPicker
 						tags={tagsList}
 						selected={tagIds}
@@ -362,13 +376,13 @@ export default function NewTradePage() {
 					/>
 				</div>
 				<div>
-					<label className="text-[11px] text-pk-white-dim mb-1 block">Notes</label>
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Notes</label>
 					<textarea
 						placeholder="Trade thesis, setup description…"
 						value={notesMd}
 						onChange={(e) => setNotesMd(e.target.value)}
 						rows={4}
-						className="flex w-full rounded-[6px] border border-pk-border bg-pk-black-sunken px-3 py-2 text-[13px] text-pk-white placeholder:text-pk-white-dim transition-colors duration-150 hover:border-pk-border-strong focus-visible:outline-none focus-visible:border-pk-purple focus-visible:shadow-[0_0_0_1px_rgba(124,92,252,0.15),0_0_8px_rgba(124,92,252,0.1)] resize-y"
+						className="flex w-full rounded-[6px] border border-pk-border bg-pk-black-sunken px-4 sm:px-3 py-3 sm:py-2 text-[16px] sm:text-[13px] text-pk-white placeholder:text-pk-white-dim transition-colors duration-150 hover:border-pk-border-strong focus-visible:outline-none focus-visible:border-pk-purple focus-visible:shadow-[0_0_0_1px_rgba(124,92,252,0.15),0_0_8px_rgba(124,92,252,0.1)] resize-y"
 					/>
 				</div>
 			</section>
@@ -387,7 +401,9 @@ export default function NewTradePage() {
 					</Button>
 				</div>
 				{screenshots.length === 0 && (
-					<p className="text-[12px] text-pk-white-dim">No screenshots added. All optional.</p>
+					<p className="text-[14px] sm:text-[12px] text-pk-white-dim">
+						No screenshots added. All optional.
+					</p>
 				)}
 				{screenshots.map((ss, i) => (
 					<div key={`ss-${i}`} className="flex gap-2 items-end">
@@ -442,7 +458,7 @@ export default function NewTradePage() {
 
 			{/* Error + Submit */}
 			{error && (
-				<p className="text-[12px] text-red-400" role="alert">
+				<p className="text-[14px] sm:text-[12px] text-red-400" role="alert">
 					{error}
 				</p>
 			)}
