@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "pnpm install --frozen-lockfile && pnpm rebuild better-sqlite3 && pnpm build"
 
 [deploy]
-startCommand = "pnpm db:migrate && pnpm start"
+startCommand = "mkdir -p /data && pnpm db:migrate && pnpm start"
 healthcheckPath = "/login"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
