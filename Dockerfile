@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Install build deps for better-sqlite3 native compilation
 RUN apt-get update && \
