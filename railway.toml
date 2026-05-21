@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "pnpm install --frozen-lockfile && pnpm build"
+buildCommand = "pnpm install --frozen-lockfile && pnpm rebuild better-sqlite3 && pnpm build"
 
 [deploy]
 startCommand = "pnpm db:migrate && pnpm start"
