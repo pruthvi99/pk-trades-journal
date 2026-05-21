@@ -33,4 +33,16 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Start: create data dir, run migrations, serve
-CMD ["sh", "-c", "mkdir -p \"$(dirname \"$DATABASE_PATH\")\" && pnpm db:migrate && pnpm start"]
+CMD ["sh", "-c", "\
+  echo '=== pk_trades starting ===' && \
+  echo \"NODE_ENV=$NODE_ENV\" && \
+  echo \"DATABASE_PATH=$DATABASE_PATH\" && \
+  echo \"PORT=$PORT\" && \
+  echo \"HOSTNAME=$HOSTNAME\" && \
+  node -v && pnpm -v && \
+  mkdir -p \"$(dirname \"$DATABASE_PATH\")\" && \
+  echo 'Running migrations...' && \
+  pnpm db:migrate && \
+  echo 'Migrations done. Starting Next.js...' && \
+  exec pnpm start \
+"]
