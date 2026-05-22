@@ -114,17 +114,20 @@ function JournalContent() {
 			'R',
 			'Notes',
 		];
-		const rows = trades.map((t) => [
-			new Date(t.openedAt).toLocaleDateString(),
-			t.symbol,
-			getStrategyName(t.strategyId),
-			t.direction,
-			t.instrument,
-			t.status,
-			t.realizedPnlUsd?.toFixed(2) ?? '',
-			t.realizedPnlR?.toFixed(2) ?? '',
-			(t.notesMd ?? '').replace(/\n/g, ' ').slice(0, 100),
-		]);
+		const rows = trades.map((t) => {
+			const isClosed = t.status !== 'open';
+			return [
+				new Date(t.openedAt).toLocaleDateString(),
+				t.symbol,
+				getStrategyName(t.strategyId),
+				t.direction,
+				t.instrument,
+				t.status,
+				isClosed && t.realizedPnlUsd != null ? t.realizedPnlUsd.toFixed(2) : '',
+				isClosed && t.realizedPnlR != null ? t.realizedPnlR.toFixed(2) : '',
+				(t.notesMd ?? '').replace(/\n/g, ' ').slice(0, 100),
+			];
+		});
 		const csv = [headers, ...rows].map((row) => row.map((c) => `"${c}"`).join(',')).join('\n');
 		const blob = new Blob([csv], { type: 'text/csv' });
 		const url = URL.createObjectURL(blob);
@@ -275,15 +278,15 @@ function JournalContent() {
 						</TableHeader>
 						<TableBody>
 							{trades.map((trade) => {
-								const isWin = (trade.realizedPnlUsd ?? 0) > 0;
-								const statusVariant =
-									trade.status === 'open'
-										? 'open'
-										: isWin
-											? 'win'
-											: trade.status === 'closed'
-												? 'loss'
-												: 'muted';
+								const isOpen = trade.status === 'open';
+								const isWin = !isOpen && (trade.realizedPnlUsd ?? 0) > 0;
+								const statusVariant = isOpen
+									? 'open'
+									: isWin
+										? 'win'
+										: trade.status === 'closed'
+											? 'loss'
+											: 'muted';
 
 								return (
 									<TableRow key={trade.id}>
@@ -313,20 +316,20 @@ function JournalContent() {
 										</TableCell>
 										<TableCell
 											className={`text-right font-mono tabular-nums ${dense ? 'py-1' : ''} ${
-												isWin ? 'text-pk-white' : 'text-pk-purple'
+												isOpen ? 'text-pk-white-dim' : isWin ? 'text-pk-white' : 'text-pk-purple'
 											}`}
 										>
-											{trade.realizedPnlR != null
+											{!isOpen && trade.realizedPnlR != null
 												? `${trade.realizedPnlR >= 0 ? '+' : ''}${trade.realizedPnlR.toFixed(2)}R`
 												: '—'}
 										</TableCell>
 										<TableCell
 											className={`text-right font-mono tabular-nums ${dense ? 'py-1' : ''} ${
-												isWin ? 'text-pk-white' : 'text-pk-purple'
+												isOpen ? 'text-pk-white-dim' : isWin ? 'text-pk-white' : 'text-pk-purple'
 											}`}
 										>
-											{trade.realizedPnlUsd != null
-												? `${trade.realizedPnlUsd >= 0 ? '+' : ''}$${trade.realizedPnlUsd.toFixed(2)}`
+											{!isOpen && trade.realizedPnlUsd != null
+												? `${trade.realizedPnlUsd >= 0 ? '+' : '-'}$${Math.abs(trade.realizedPnlUsd).toFixed(2)}`
 												: '—'}
 										</TableCell>
 										<TableCell className={dense ? 'py-1' : ''}>

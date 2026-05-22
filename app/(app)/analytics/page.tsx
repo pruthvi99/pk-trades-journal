@@ -251,6 +251,9 @@ export default function AnalyticsPage() {
 
 	const { timeAnalysis, advancedRisk, edgeExtended, behavioral } = data;
 
+	/** Format a dollar amount with correct sign: -$202, +$161, $0 */
+	const fmtPnl = (n: number) => `${n < 0 ? '-' : ''}$${Math.abs(n)}`;
+
 	// Compute overall win rate for tilt reference line
 	const totalClosedForWinRate =
 		behavioral.tiltDetection.length > 0
@@ -616,13 +619,13 @@ export default function AnalyticsPage() {
 							left={{
 								label: 'Revenge Trades',
 								value: `${behavioral.revengeTradeDetection.revengeWinPercent}%`,
-								subtext: `$${behavioral.revengeTradeDetection.revengeAvgPnl} avg P&L`,
+								subtext: `${fmtPnl(behavioral.revengeTradeDetection.revengeAvgPnl)} avg P&L`,
 								trades: behavioral.revengeTradeDetection.revengeTradeCount,
 							}}
 							right={{
 								label: 'Normal Trades',
 								value: `${behavioral.revengeTradeDetection.normalWinPercent}%`,
-								subtext: `$${behavioral.revengeTradeDetection.normalAvgPnl} avg P&L`,
+								subtext: `${fmtPnl(behavioral.revengeTradeDetection.normalAvgPnl)} avg P&L`,
 								trades:
 									behavioral.revengeTradeDetection.totalTrades -
 									behavioral.revengeTradeDetection.revengeTradeCount,
@@ -648,13 +651,13 @@ export default function AnalyticsPage() {
 									left={{
 										label: 'Followed Plan',
 										value: `${behavioral.planDeviationImpact.followedWinPercent}%`,
-										subtext: `$${behavioral.planDeviationImpact.followedAvgPnl} avg · ${behavioral.planDeviationImpact.followedAvgR}R`,
+										subtext: `${fmtPnl(behavioral.planDeviationImpact.followedAvgPnl)} avg · ${behavioral.planDeviationImpact.followedAvgR}R`,
 										trades: behavioral.planDeviationImpact.followedPlanTrades,
 									}}
 									right={{
 										label: 'Deviated',
 										value: `${behavioral.planDeviationImpact.deviatedWinPercent}%`,
-										subtext: `$${behavioral.planDeviationImpact.deviatedAvgPnl} avg · ${behavioral.planDeviationImpact.deviatedAvgR}R`,
+										subtext: `${fmtPnl(behavioral.planDeviationImpact.deviatedAvgPnl)} avg · ${behavioral.planDeviationImpact.deviatedAvgR}R`,
 										trades: behavioral.planDeviationImpact.deviatedTrades,
 									}}
 									betterSide={
@@ -692,12 +695,12 @@ export default function AnalyticsPage() {
 								left={{
 									label: 'High Volume',
 									value: `${behavioral.overtradingDetection.highVolumeWinPercent}%`,
-									subtext: `$${behavioral.overtradingDetection.highVolumeAvgPnl} avg P&L`,
+									subtext: `${fmtPnl(behavioral.overtradingDetection.highVolumeAvgPnl)} avg P&L`,
 								}}
 								right={{
 									label: 'Normal Volume',
 									value: `${behavioral.overtradingDetection.lowVolumeWinPercent}%`,
-									subtext: `$${behavioral.overtradingDetection.lowVolumeAvgPnl} avg P&L`,
+									subtext: `${fmtPnl(behavioral.overtradingDetection.lowVolumeAvgPnl)} avg P&L`,
 								}}
 								betterSide={
 									behavioral.overtradingDetection.lowVolumeAvgPnl >

@@ -16,7 +16,7 @@ export default async function TradeDetailPage({ params }: { params: Promise<{ id
 
 	const pnlDisplay =
 		trade.realizedPnlUsd != null
-			? `${trade.realizedPnlUsd >= 0 ? '+' : ''}$${trade.realizedPnlUsd.toFixed(2)}`
+			? `${trade.realizedPnlUsd >= 0 ? '+' : '-'}$${Math.abs(trade.realizedPnlUsd).toFixed(2)}`
 			: '—';
 
 	const rDisplay =
@@ -24,7 +24,8 @@ export default async function TradeDetailPage({ params }: { params: Promise<{ id
 			? `${trade.realizedPnlR >= 0 ? '+' : ''}${trade.realizedPnlR.toFixed(2)}R`
 			: '';
 
-	const isWin = (trade.realizedPnlUsd ?? 0) > 0;
+	const isOpen = trade.status === 'open';
+	const isWin = !isOpen && (trade.realizedPnlUsd ?? 0) > 0;
 	const statusVariant =
 		trade.status === 'open' ? 'open' : isWin ? 'win' : trade.status === 'closed' ? 'loss' : 'muted';
 

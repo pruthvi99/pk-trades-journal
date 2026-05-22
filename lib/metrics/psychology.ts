@@ -24,7 +24,7 @@ export function confidenceByOutcome(trades: PsychTrade[]): {
 	);
 
 	const winners = closed.filter((t) => (t.realizedPnlUsd ?? 0) > 0);
-	const losers = closed.filter((t) => (t.realizedPnlUsd ?? 0) <= 0);
+	const losers = closed.filter((t) => (t.realizedPnlUsd ?? 0) < 0);
 
 	return {
 		winnersAvg: avg(winners.map((t) => t.preConfidence!)),
