@@ -17,7 +17,12 @@ import {
 	SelectValue,
 } from '@/components/primitives/select';
 import { LegBuilder, type LegData } from '@/components/trade/leg-builder';
-import { type PrePsychologyData, PrePsychologyFields } from '@/components/trade/psychology-fields';
+import {
+	type PostPsychologyData,
+	PostPsychologyFields,
+	type PrePsychologyData,
+	PrePsychologyFields,
+} from '@/components/trade/psychology-fields';
 import { TagPicker } from '@/components/trade/tag-picker';
 
 interface Strategy {
@@ -59,9 +64,21 @@ export default function NewTradePage() {
 	const [plannedSize, setPlannedSize] = useState('');
 	const [plannedRiskUsd, setPlannedRiskUsd] = useState('');
 
+	// Status
+	const [status, setStatus] = useState<'open' | 'closed'>('closed');
+	const [closedAt, setClosedAt] = useState(() => {
+		const now = new Date();
+		return now.toISOString().slice(0, 16);
+	});
+
 	// Execution
 	const [legs, setLegs] = useState<LegData[]>([
 		{ side: 'sell', optionType: 'put', price: 0, multiplier: 100 },
+	]);
+
+	// Exit execution (when status = closed)
+	const [exitLegs, setExitLegs] = useState<LegData[]>([
+		{ side: 'buy', optionType: 'put', price: 0, multiplier: 100 },
 	]);
 
 	// Trade classification
@@ -77,6 +94,7 @@ export default function NewTradePage() {
 
 	// Psychology
 	const [psychology, setPsychology] = useState<PrePsychologyData>({});
+	const [postPsychology, setPostPsychology] = useState<PostPsychologyData>({});
 
 	// Live R:R calculation
 	const riskReward = (() => {
@@ -106,8 +124,10 @@ export default function NewTradePage() {
 	useEffect(() => {
 		if (instrument === 'stock') {
 			setLegs([{ side: 'buy', price: 0, multiplier: 1 }]);
+			setExitLegs([{ side: 'sell', price: 0, multiplier: 1 }]);
 		} else {
 			setLegs([{ side: 'sell', optionType: 'put', price: 0, multiplier: 100 }]);
+			setExitLegs([{ side: 'buy', optionType: 'put', price: 0, multiplier: 100 }]);
 		}
 	}, [instrument]);
 
@@ -123,11 +143,26 @@ export default function NewTradePage() {
 		return tag;
 	};
 
+	const buildLeg = (leg: LegData) => ({
+		side: leg.side,
+		price: leg.price,
+		...(instrument === 'stock'
+			? { shares: leg.shares, multiplier: 1 }
+			: {
+					optionType: leg.optionType,
+					strike: leg.strike,
+					expiration: leg.expiration,
+					contracts: leg.contracts,
+					multiplier: 100,
+				}),
+	});
+
 	const handleSubmit = async () => {
 		setError('');
 		setSaving(true);
 
 		try {
+			// Step 1: Create trade (always starts as open with entry execution)
 			const payload = {
 				symbol,
 				instrument,
@@ -148,19 +183,7 @@ export default function NewTradePage() {
 				execution: {
 					kind: 'entry' as const,
 					executedAt: new Date(openedAt).toISOString(),
-					legs: legs.map((leg) => ({
-						side: leg.side,
-						price: leg.price,
-						...(instrument === 'stock'
-							? { shares: leg.shares, multiplier: 1 }
-							: {
-									optionType: leg.optionType,
-									strike: leg.strike,
-									expiration: leg.expiration,
-									contracts: leg.contracts,
-									multiplier: 100,
-								}),
-					})),
+					legs: legs.map(buildLeg),
 				},
 			};
 
@@ -177,6 +200,33 @@ export default function NewTradePage() {
 			}
 
 			const trade = (await res.json()) as { id: string };
+
+			// Step 2: If closing, add exit execution then patch status
+			if (status === 'closed') {
+				const closedAtIso = new Date(closedAt).toISOString();
+
+				await fetch('/api/executions', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						tradeId: trade.id,
+						kind: 'exit',
+						executedAt: closedAtIso,
+						legs: exitLegs.map(buildLeg),
+					}),
+				});
+
+				await fetch(`/api/trades/${trade.id}`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						status: 'closed',
+						closedAt: closedAtIso,
+						...postPsychology,
+					}),
+				});
+			}
+
 			router.push(`/trades/${trade.id}`);
 		} catch {
 			setError('Failed to save trade');
@@ -280,6 +330,18 @@ export default function NewTradePage() {
 					</div>
 				</div>
 				<div>
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Status</label>
+					<Select value={status} onValueChange={(v) => setStatus(v as 'open' | 'closed')}>
+						<SelectTrigger>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="closed">Closed</SelectItem>
+							<SelectItem value="open">Open</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+				<div>
 					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 						Opened at
 					</label>
@@ -289,6 +351,18 @@ export default function NewTradePage() {
 						onChange={(e) => setOpenedAt(e.target.value)}
 					/>
 				</div>
+				{status === 'closed' && (
+					<div>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Closed at
+						</label>
+						<Input
+							type="datetime-local"
+							value={closedAt}
+							onChange={(e) => setClosedAt(e.target.value)}
+						/>
+					</div>
+				)}
 			</section>
 
 			{/* Section 2: Plan */}
@@ -401,11 +475,19 @@ export default function NewTradePage() {
 				</div>
 			</section>
 
-			{/* Section 4: First execution */}
+			{/* Section 4: Entry execution */}
 			<section className="space-y-4">
-				<p className="eyebrow">First execution</p>
+				<p className="eyebrow">Entry execution</p>
 				<LegBuilder instrument={instrument} legs={legs} onChange={setLegs} />
 			</section>
+
+			{/* Section 4b: Exit execution — only when closing */}
+			{status === 'closed' && (
+				<section className="space-y-4">
+					<p className="eyebrow">Exit execution</p>
+					<LegBuilder instrument={instrument} legs={exitLegs} onChange={setExitLegs} />
+				</section>
+			)}
 
 			{/* Section 4: Reasoning */}
 			<section className="space-y-4">
@@ -499,6 +581,16 @@ export default function NewTradePage() {
 			<section>
 				<PrePsychologyFields data={psychology} onChange={(data) => setPsychology(data)} />
 			</section>
+
+			{/* Section 7: Post-trade psychology — only when closing */}
+			{status === 'closed' && (
+				<section>
+					<PostPsychologyFields
+						data={postPsychology}
+						onChange={(data) => setPostPsychology(data)}
+					/>
+				</section>
+			)}
 
 			{/* Error + Submit */}
 			{error && (
