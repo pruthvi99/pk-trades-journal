@@ -319,6 +319,8 @@ export function createTrade(input: {
 	plannedRiskUsd?: number;
 	openedAt: string;
 	notesMd?: string;
+	tradeQuality?: string;
+	tradeBasis?: string;
 	preConfidence?: number;
 	preConviction?: string;
 	preMood?: string;
@@ -363,6 +365,8 @@ export function createTrade(input: {
 		plannedRiskUsd: input.plannedRiskUsd ?? null,
 		openedAt: input.openedAt,
 		notesMd: input.notesMd ?? null,
+		tradeQuality: (input.tradeQuality as Trade['tradeQuality']) ?? null,
+		tradeBasis: (input.tradeBasis as Trade['tradeBasis']) ?? null,
 		preConfidence: input.preConfidence ?? null,
 		preConviction: input.preConviction ?? null,
 		preMood: (input.preMood as Trade['preMood']) ?? null,
@@ -462,6 +466,8 @@ export function updateTrade(
 		openedAt: string;
 		closedAt: string | null;
 		notesMd: string | null;
+		tradeQuality: string | null;
+		tradeBasis: string | null;
 		preConfidence: number | null;
 		preConviction: string | null;
 		preMood: string | null;

@@ -98,6 +98,88 @@ export function medianR(trades: MetricTrade[]): number {
 	return rValues[mid]!;
 }
 
+/** Average winning trade P&L in USD. */
+export function avgWinUsd(trades: MetricTrade[]): number {
+	const wins = closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) > 0);
+	if (wins.length === 0) return 0;
+	return roundTo2(wins.reduce((s, t) => s + (t.realizedPnlUsd ?? 0), 0) / wins.length);
+}
+
+/** Average losing trade P&L in USD (negative number). */
+export function avgLossUsd(trades: MetricTrade[]): number {
+	const losses = closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) < 0);
+	if (losses.length === 0) return 0;
+	return roundTo2(losses.reduce((s, t) => s + (t.realizedPnlUsd ?? 0), 0) / losses.length);
+}
+
+/** Payoff ratio: avg win / |avg loss|. Higher is better. */
+export function payoffRatio(trades: MetricTrade[]): number {
+	const aw = avgWinUsd(trades);
+	const al = avgLossUsd(trades);
+	if (al === 0) return aw > 0 ? Infinity : 0;
+	return roundTo2(aw / Math.abs(al));
+}
+
+/** Best single trade P&L. */
+export function bestTradeUsd(trades: MetricTrade[]): number {
+	const ct = closedTrades(trades);
+	if (ct.length === 0) return 0;
+	return roundTo2(Math.max(...ct.map((t) => t.realizedPnlUsd ?? 0)));
+}
+
+/** Worst single trade P&L. */
+export function worstTradeUsd(trades: MetricTrade[]): number {
+	const ct = closedTrades(trades);
+	if (ct.length === 0) return 0;
+	return roundTo2(Math.min(...ct.map((t) => t.realizedPnlUsd ?? 0)));
+}
+
+/** Kelly Criterion: f* = W - (1-W)/R where W=win rate, R=payoff ratio. */
+export function kellyCriterion(trades: MetricTrade[]): number {
+	const wr = winRate(trades) / 100;
+	const pr = payoffRatio(trades);
+	if (pr === 0 || pr === Infinity) return 0;
+	const kelly = wr - (1 - wr) / pr;
+	return roundTo2(kelly * 100); // as percentage
+}
+
+/** Number of winning trades. */
+export function winCount(trades: MetricTrade[]): number {
+	return closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) > 0).length;
+}
+
+/** Number of losing trades. */
+export function lossCount(trades: MetricTrade[]): number {
+	return closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) < 0).length;
+}
+
+/** Number of breakeven trades ($0 P&L). */
+export function breakEvenCount(trades: MetricTrade[]): number {
+	return closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) === 0).length;
+}
+
+/** Gross profit (sum of winning trades). */
+export function grossProfit(trades: MetricTrade[]): number {
+	const wins = closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) > 0);
+	return roundTo2(wins.reduce((s, t) => s + (t.realizedPnlUsd ?? 0), 0));
+}
+
+/** Gross loss (sum of losing trades, as positive number). */
+export function grossLoss(trades: MetricTrade[]): number {
+	const losses = closedTrades(trades).filter((t) => (t.realizedPnlUsd ?? 0) < 0);
+	return roundTo2(Math.abs(losses.reduce((s, t) => s + (t.realizedPnlUsd ?? 0), 0)));
+}
+
+/** Standard deviation of trade P&L. */
+export function pnlStdDev(trades: MetricTrade[]): number {
+	const ct = closedTrades(trades);
+	if (ct.length < 2) return 0;
+	const mean = ct.reduce((s, t) => s + (t.realizedPnlUsd ?? 0), 0) / ct.length;
+	const variance =
+		ct.reduce((s, t) => s + ((t.realizedPnlUsd ?? 0) - mean) ** 2, 0) / (ct.length - 1);
+	return roundTo2(Math.sqrt(variance));
+}
+
 function roundTo2(n: number): number {
 	return Math.round(n * 100) / 100;
 }

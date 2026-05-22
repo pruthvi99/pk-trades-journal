@@ -12,6 +12,8 @@ export interface EdgeTrade {
 	instrument: 'option_spread' | 'stock';
 	openedAt: string;
 	tagIds: string[];
+	tradeQuality?: string | null;
+	tradeBasis?: string | null;
 }
 
 /** A single row in an edge-slicing table. */
@@ -115,6 +117,19 @@ export function sliceByHour(trades: EdgeTrade[]): EdgeRow[] {
 /** Slice by instrument type. */
 export function sliceByInstrument(trades: EdgeTrade[]): EdgeRow[] {
 	return sliceBy(trades, (t) => (t.instrument === 'option_spread' ? 'Spreads' : 'Stocks'));
+}
+
+/** Slice by trade quality grade (A, A+, A++, B, B+). */
+export function sliceByQuality(trades: EdgeTrade[]): EdgeRow[] {
+	return sliceBy(trades, (t) => t.tradeQuality ?? 'Ungraded');
+}
+
+/** Slice by trade basis (rules-based vs intuition). */
+export function sliceByBasis(trades: EdgeTrade[]): EdgeRow[] {
+	return sliceBy(trades, (t) => {
+		if (!t.tradeBasis) return 'Unclassified';
+		return t.tradeBasis === 'rules' ? 'Rules-based' : 'Intuition';
+	});
 }
 
 function roundTo2(n: number): number {

@@ -35,6 +35,18 @@ interface MetricsData {
 		expectancyR: number;
 		averageR: number;
 		medianR: number;
+		avgWinUsd: number;
+		avgLossUsd: number;
+		payoffRatio: number;
+		bestTradeUsd: number;
+		worstTradeUsd: number;
+		kellyCriterion: number;
+		winCount: number;
+		lossCount: number;
+		breakEvenCount: number;
+		grossProfit: number;
+		grossLoss: number;
+		pnlStdDev: number;
 	};
 	distribution: {
 		equityCurve: Array<{
@@ -61,6 +73,8 @@ interface MetricsData {
 		byStrategy: EdgeRow[];
 		byDayOfWeek: EdgeRow[];
 		byInstrument: EdgeRow[];
+		byQuality: EdgeRow[];
+		byBasis: EdgeRow[];
 	};
 	risk: {
 		avgRiskUsd: number;
@@ -192,6 +206,82 @@ export default function MetricsPage() {
 						variant="neutral"
 					/>
 				</div>
+
+				{/* Win/Loss Breakdown */}
+				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+					<StatCard label="Avg Win" value={`+$${headline.avgWinUsd.toFixed(2)}`} variant="win" />
+					<StatCard
+						label="Avg Loss"
+						value={`-$${Math.abs(headline.avgLossUsd).toFixed(2)}`}
+						variant="loss"
+					/>
+					<StatCard
+						label="Payoff Ratio"
+						value={headline.payoffRatio === Infinity ? '∞' : headline.payoffRatio.toFixed(2)}
+						suffix="(W/L ratio)"
+						variant={headline.payoffRatio >= 1 ? 'win' : 'loss'}
+					/>
+					<StatCard
+						label="Kelly %"
+						value={`${headline.kellyCriterion.toFixed(1)}%`}
+						suffix="optimal size"
+						variant={headline.kellyCriterion > 0 ? 'win' : 'loss'}
+					/>
+				</div>
+
+				{/* Best/Worst & Distribution */}
+				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+					<StatCard
+						label="Best Trade"
+						value={`+$${headline.bestTradeUsd.toFixed(2)}`}
+						variant="win"
+					/>
+					<StatCard
+						label="Worst Trade"
+						value={`-$${Math.abs(headline.worstTradeUsd).toFixed(2)}`}
+						variant="loss"
+					/>
+					<StatCard
+						label="P&L Std Dev"
+						value={`$${headline.pnlStdDev.toFixed(2)}`}
+						variant="neutral"
+					/>
+					<div className="rounded-[6px] border border-pk-border bg-pk-black-raised px-4 py-3">
+						<p className="text-[12px] sm:text-[11px] text-pk-white-dim font-medium uppercase tracking-wider">
+							Win / Loss / BE
+						</p>
+						<p className="mt-1.5 font-mono tabular-nums text-[16px]">
+							<span className="text-green-400">{headline.winCount}W</span>{' '}
+							<span className="text-red-400">{headline.lossCount}L</span>{' '}
+							<span className="text-pk-white-dim">{headline.breakEvenCount}BE</span>
+						</p>
+					</div>
+				</div>
+
+				{/* Gross P&L Breakdown */}
+				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+					<StatCard
+						label="Gross Profit"
+						value={`+$${headline.grossProfit.toFixed(2)}`}
+						variant="win"
+					/>
+					<StatCard
+						label="Gross Loss"
+						value={`-$${headline.grossLoss.toFixed(2)}`}
+						variant="loss"
+					/>
+					<StatCard
+						label="Net P&L"
+						value={`${headline.totalPnlUsd >= 0 ? '+' : ''}$${headline.totalPnlUsd.toFixed(2)}`}
+						variant={pnlVariant}
+					/>
+					<StatCard
+						label="Profit Factor"
+						value={headline.profitFactor === Infinity ? '∞' : headline.profitFactor.toFixed(2)}
+						suffix="(gross W / L)"
+						variant={headline.profitFactor >= 1 ? 'win' : 'loss'}
+					/>
+				</div>
 			</section>
 
 			{/* Equity Curve */}
@@ -258,6 +348,8 @@ export default function MetricsPage() {
 					<EdgeTable rows={edge.bySymbol} title="By symbol" />
 					<EdgeTable rows={edge.byDayOfWeek} title="By day of week" />
 					<EdgeTable rows={edge.byInstrument} title="By instrument" />
+					<EdgeTable rows={edge.byQuality} title="By trade quality" />
+					<EdgeTable rows={edge.byBasis} title="By trade basis" />
 				</div>
 			</section>
 

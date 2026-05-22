@@ -78,6 +78,21 @@ const NAV_ITEMS: NavItem[] = [
 		),
 	},
 	{
+		href: '/analytics',
+		label: 'Analytics',
+		icon: (
+			<>
+				<path
+					d="M4 16h3V10H4v6zM9 16h3V4H9v12zM14 16h3V8h-3v8z"
+					stroke="currentColor"
+					strokeWidth="1.5"
+					strokeLinejoin="round"
+					fill="none"
+				/>
+			</>
+		),
+	},
+	{
 		href: '/settings',
 		label: 'Settings',
 		icon: (

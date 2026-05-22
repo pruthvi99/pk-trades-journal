@@ -64,6 +64,10 @@ export default function NewTradePage() {
 		{ side: 'sell', optionType: 'put', price: 0, multiplier: 100 },
 	]);
 
+	// Trade classification
+	const [tradeQuality, setTradeQuality] = useState<string>('');
+	const [tradeBasis, setTradeBasis] = useState<string>('');
+
 	// Reasoning
 	const [tagIds, setTagIds] = useState<string[]>([]);
 	const [notesMd, setNotesMd] = useState('');
@@ -136,6 +140,8 @@ export default function NewTradePage() {
 				plannedSize: plannedSize ? Number(plannedSize) : undefined,
 				plannedRiskUsd: plannedRiskUsd ? Number(plannedRiskUsd) : undefined,
 				notesMd: notesMd || undefined,
+				tradeQuality: tradeQuality || undefined,
+				tradeBasis: tradeBasis || undefined,
 				tagIds: tagIds.length > 0 ? tagIds : undefined,
 				screenshots: screenshots.length > 0 ? screenshots : undefined,
 				...psychology,
@@ -357,7 +363,45 @@ export default function NewTradePage() {
 				</div>
 			</section>
 
-			{/* Section 3: First execution */}
+			{/* Section 3: Trade Classification */}
+			<section className="space-y-4">
+				<p className="eyebrow">Trade classification</p>
+				<div className="grid grid-cols-2 gap-3">
+					<div>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Quality grade
+						</label>
+						<Select value={tradeQuality} onValueChange={setTradeQuality}>
+							<SelectTrigger>
+								<SelectValue placeholder="Select…" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="A++">A++ (Perfect)</SelectItem>
+								<SelectItem value="A+">A+ (Excellent)</SelectItem>
+								<SelectItem value="A">A (Good)</SelectItem>
+								<SelectItem value="B+">B+ (Average)</SelectItem>
+								<SelectItem value="B">B (Below avg)</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<div>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Trade basis
+						</label>
+						<Select value={tradeBasis} onValueChange={setTradeBasis}>
+							<SelectTrigger>
+								<SelectValue placeholder="Select…" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="rules">Rules-based</SelectItem>
+								<SelectItem value="intuition">Intuition</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+			</section>
+
+			{/* Section 4: First execution */}
 			<section className="space-y-4">
 				<p className="eyebrow">First execution</p>
 				<LegBuilder instrument={instrument} legs={legs} onChange={setLegs} />

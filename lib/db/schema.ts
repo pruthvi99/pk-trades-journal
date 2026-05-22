@@ -62,6 +62,12 @@ export const trades = sqliteTable('trades', {
 	realizedPnlR: real('realized_pnl_r'),
 	feesUsd: real('fees_usd').notNull().default(0),
 
+	// Trade classification
+	tradeQuality: text('trade_quality', {
+		enum: ['A', 'A+', 'A++', 'B', 'B+'],
+	}),
+	tradeBasis: text('trade_basis', { enum: ['rules', 'intuition'] }),
+
 	// Notes
 	notesMd: text('notes_md'),
 

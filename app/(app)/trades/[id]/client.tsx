@@ -356,6 +356,29 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 				{/* Details */}
 				<TabsContent value="details">
 					<div className="space-y-6">
+						{/* Trade Classification */}
+						{(trade.tradeQuality || trade.tradeBasis) && (
+							<div>
+								<p className="eyebrow mb-2">Classification</p>
+								<div className="grid grid-cols-2 gap-4 text-[13px]">
+									{trade.tradeQuality && (
+										<div>
+											<span className="text-pk-white-dim block text-[11px]">Quality</span>
+											<span className="font-medium text-pk-white">{trade.tradeQuality}</span>
+										</div>
+									)}
+									{trade.tradeBasis && (
+										<div>
+											<span className="text-pk-white-dim block text-[11px]">Basis</span>
+											<span className="font-medium text-pk-white capitalize">
+												{trade.tradeBasis === 'rules' ? 'Rules-based' : 'Intuition'}
+											</span>
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
 						{/* Plan */}
 						{(trade.plannedEntry || trade.plannedStop || trade.plannedTarget) && (
 							<div>

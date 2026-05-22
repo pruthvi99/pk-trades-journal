@@ -64,6 +64,10 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 	const [direction, setDirection] = useState(trade.direction);
 	const [strategyId, setStrategyId] = useState(trade.strategyId ?? '');
 
+	// Trade classification
+	const [tradeQuality, setTradeQuality] = useState(trade.tradeQuality ?? '');
+	const [tradeBasis, setTradeBasis] = useState(trade.tradeBasis ?? '');
+
 	// Plan
 	const [plannedEntry, setPlannedEntry] = useState(trade.plannedEntry?.toString() ?? '');
 	const [plannedStop, setPlannedStop] = useState(trade.plannedStop?.toString() ?? '');
@@ -113,6 +117,8 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 		setInstrument(trade.instrument);
 		setDirection(trade.direction);
 		setStrategyId(trade.strategyId ?? '');
+		setTradeQuality(trade.tradeQuality ?? '');
+		setTradeBasis(trade.tradeBasis ?? '');
 		setPlannedEntry(trade.plannedEntry?.toString() ?? '');
 		setPlannedStop(trade.plannedStop?.toString() ?? '');
 		setPlannedTarget(trade.plannedTarget?.toString() ?? '');
@@ -150,6 +156,8 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 				instrument,
 				direction,
 				strategyId: strategyId || undefined,
+				tradeQuality: tradeQuality || undefined,
+				tradeBasis: tradeBasis || undefined,
 				plannedEntry: plannedEntry ? Number(plannedEntry) : undefined,
 				plannedStop: plannedStop ? Number(plannedStop) : undefined,
 				plannedTarget: plannedTarget ? Number(plannedTarget) : undefined,
@@ -257,6 +265,44 @@ export function EditTradeDialog({ trade, onSaved }: EditTradeDialogProps) {
 												{s.name}
 											</SelectItem>
 										))}
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+					</div>
+
+					{/* Trade Classification */}
+					<div className="space-y-3">
+						<p className="eyebrow">Classification</p>
+						<div className="grid grid-cols-2 gap-3">
+							<div>
+								<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Quality
+								</label>
+								<Select value={tradeQuality} onValueChange={setTradeQuality}>
+									<SelectTrigger>
+										<SelectValue placeholder="Select…" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="A++">A++ (Perfect)</SelectItem>
+										<SelectItem value="A+">A+ (Excellent)</SelectItem>
+										<SelectItem value="A">A (Good)</SelectItem>
+										<SelectItem value="B+">B+ (Average)</SelectItem>
+										<SelectItem value="B">B (Below avg)</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div>
+								<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Basis
+								</label>
+								<Select value={tradeBasis} onValueChange={setTradeBasis}>
+									<SelectTrigger>
+										<SelectValue placeholder="Select…" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="rules">Rules-based</SelectItem>
+										<SelectItem value="intuition">Intuition</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>

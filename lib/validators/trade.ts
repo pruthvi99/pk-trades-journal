@@ -17,6 +17,8 @@ export const moodEnum = z.enum([
 	'focused',
 	'neutral',
 ]);
+export const tradeQualityEnum = z.enum(['A', 'A+', 'A++', 'B', 'B+']);
+export const tradeBasisEnum = z.enum(['rules', 'intuition']);
 
 export const createTradeSchema = z.object({
 	symbol: z
@@ -37,6 +39,10 @@ export const createTradeSchema = z.object({
 
 	openedAt: z.iso.datetime(),
 	notesMd: z.string().max(10000).optional(),
+
+	// Trade classification
+	tradeQuality: tradeQualityEnum.optional(),
+	tradeBasis: tradeBasisEnum.optional(),
 
 	// Pre-trade psychology — all optional
 	preConfidence: z.number().int().min(1).max(10).optional(),
