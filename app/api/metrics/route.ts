@@ -1,9 +1,12 @@
 /**
- * GET /api/metrics — compute and return all metrics for the dashboard.
+ * GET /api/metrics — compute and return all metrics for the dashboard (scoped to user).
  */
 
+import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/auth';
 import { getDb } from '@/lib/db/client';
+import { getUserSettings } from '@/lib/db/queries';
 import { strategies, trades } from '@/lib/db/schema';
 import { equityCurve, maxDrawdown, rDistribution, streaks } from '@/lib/metrics/distribution';
 import {
@@ -53,14 +56,22 @@ import {
 } from '@/lib/metrics/risk';
 
 export async function GET(request: Request) {
+	const userId = await getUserIdFromRequest(request);
+	if (!userId) {
+		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	const db = getDb();
-	const allTrades = db.select().from(trades).all();
-	const allStrategies = db.select().from(strategies).all();
+	const allTrades = db.select().from(trades).where(eq(trades.userId, userId)).all();
+	const allStrategies = db.select().from(strategies).where(eq(strategies.userId, userId)).all();
 	const strategyNames = new Map(allStrategies.map((s) => [s.id, s.name]));
 
-	// The metric functions handle filtering internally via the status field
+	// Get user's starting balance from their settings
 	const { searchParams } = new URL(request.url);
-	const startingBalance = Number(searchParams.get('startingBalance') ?? '25000');
+	const userSettingsData = getUserSettings(userId);
+	const startingBalance = Number(
+		searchParams.get('startingBalance') ?? userSettingsData.startingBalance ?? '25000',
+	);
 
 	// Map to EdgeTrade shape (superset) — tagIds empty since edge tags not needed here
 	const edgeTrades = allTrades.map((t) => ({

@@ -1,14 +1,14 @@
 /**
- * POST /api/auth/login — authenticate with admin password.
- * Sets a signed session cookie on success.
+ * POST /api/auth/login — authenticate with 6-digit passcode.
+ * Looks up user by passcode and sets a signed session cookie on success.
  */
 
 import { NextResponse } from 'next/server';
 import {
 	createSessionToken,
+	findUserByPasscode,
 	SESSION_COOKIE_NAME,
 	SESSION_MAX_AGE,
-	verifyPassword,
 } from '@/lib/auth';
 
 export async function POST(request: Request) {
@@ -16,14 +16,15 @@ export async function POST(request: Request) {
 		const body = (await request.json()) as { password?: string };
 
 		if (!body.password || typeof body.password !== 'string') {
-			return NextResponse.json({ error: 'Password is required' }, { status: 400 });
+			return NextResponse.json({ error: 'Passcode is required' }, { status: 400 });
 		}
 
-		if (!verifyPassword(body.password)) {
-			return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+		const user = findUserByPasscode(body.password);
+		if (!user) {
+			return NextResponse.json({ error: 'Invalid passcode' }, { status: 401 });
 		}
 
-		const token = await createSessionToken();
+		const token = await createSessionToken(user.id);
 		const response = NextResponse.json({ ok: true });
 
 		response.cookies.set(SESSION_COOKIE_NAME, token, {

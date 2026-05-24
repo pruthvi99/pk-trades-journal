@@ -1,9 +1,12 @@
 /**
- * GET /api/analytics — deep-dive analytics data for pattern identification.
+ * GET /api/analytics — deep-dive analytics data for pattern identification (scoped to user).
  */
 
+import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/auth';
 import { getDb } from '@/lib/db/client';
+import { getUserSettings } from '@/lib/db/queries';
 import { strategies, tags, trades, tradeTags } from '@/lib/db/schema';
 import {
 	calmarRatio,
@@ -38,22 +41,32 @@ import {
 } from '@/lib/metrics/time-analysis';
 
 export async function GET(request: Request) {
+	const userId = await getUserIdFromRequest(request);
+	if (!userId) {
+		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	const db = getDb();
-	const allTrades = db.select().from(trades).all();
-	const allStrategies = db.select().from(strategies).all();
-	const allTags = db.select().from(tags).all();
+	const allTrades = db.select().from(trades).where(eq(trades.userId, userId)).all();
+	const allStrategies = db.select().from(strategies).where(eq(strategies.userId, userId)).all();
+	const allTags = db.select().from(tags).where(eq(tags.userId, userId)).all();
 	const allTradeTags = db.select().from(tradeTags).all();
 
 	const { searchParams } = new URL(request.url);
-	const startingBalance = Number(searchParams.get('startingBalance') ?? '25000');
+	const userSettingsData = getUserSettings(userId);
+	const startingBalance = Number(
+		searchParams.get('startingBalance') ?? userSettingsData.startingBalance ?? '25000',
+	);
 
 	// Build tag lookup maps
 	const tagLabels = new Map(allTags.map((t) => [t.id, t.label]));
 	const _strategyNames = new Map(allStrategies.map((s) => [s.id, s.name]));
 
-	// Build tagIds per trade
+	// Build tagIds per trade (only for user's trades)
+	const userTradeIds = new Set(allTrades.map((t) => t.id));
 	const tradeTagMap = new Map<string, string[]>();
 	for (const tt of allTradeTags) {
+		if (!userTradeIds.has(tt.tradeId)) continue;
 		const existing = tradeTagMap.get(tt.tradeId);
 		if (existing) existing.push(tt.tagId);
 		else tradeTagMap.set(tt.tradeId, [tt.tagId]);

@@ -1,12 +1,18 @@
 /**
  * GET /api/calendar?year=2026&month=5
- * Returns daily P&L aggregates for the given month.
+ * Returns daily P&L aggregates for the given month (scoped to user).
  */
 
 import { NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/auth';
 import { getCalendarMonth } from '@/lib/db/queries';
 
 export async function GET(request: Request) {
+	const userId = await getUserIdFromRequest(request);
+	if (!userId) {
+		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	const { searchParams } = new URL(request.url);
 	const now = new Date();
 	const year = Number(searchParams.get('year') ?? now.getFullYear());
@@ -23,6 +29,6 @@ export async function GET(request: Request) {
 		return NextResponse.json({ error: 'Invalid year or month' }, { status: 400 });
 	}
 
-	const days = getCalendarMonth(year, month);
+	const days = getCalendarMonth(year, month, userId);
 	return NextResponse.json(days);
 }

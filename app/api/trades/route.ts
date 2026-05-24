@@ -1,10 +1,11 @@
 /**
- * GET  /api/trades — list trades with filters
+ * GET  /api/trades — list trades with filters (scoped to user)
  * POST /api/trades — create a new trade with first execution
  */
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod/v4';
+import { getUserIdFromRequest } from '@/lib/auth';
 import { createTrade, listTrades } from '@/lib/db/queries';
 import { createExecutionSchema } from '@/lib/validators/execution';
 import { createTradeSchema } from '@/lib/validators/trade';
@@ -24,8 +25,14 @@ const createTradePayload = createTradeSchema.extend({
 });
 
 export async function GET(request: Request) {
+	const userId = await getUserIdFromRequest(request);
+	if (!userId) {
+		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	const { searchParams } = new URL(request.url);
 	const filters = {
+		userId,
 		status: searchParams.get('status') ?? undefined,
 		symbol: searchParams.get('symbol') ?? undefined,
 		strategyId: searchParams.get('strategyId') ?? undefined,
@@ -40,12 +47,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
 	try {
+		const userId = await getUserIdFromRequest(request);
+		if (!userId) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
 		const body = await request.json();
 		const parsed = createTradePayload.safeParse(body);
 		if (!parsed.success) {
 			return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
 		}
-		const trade = createTrade(parsed.data);
+		const trade = createTrade({ ...parsed.data, userId });
 		return NextResponse.json(trade, { status: 201 });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Internal server error';

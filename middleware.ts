@@ -35,8 +35,10 @@ async function verifyTokenEdge(token: string, secret: string): Promise<boolean> 
 	if (mismatch !== 0) return false;
 
 	try {
-		const payload = JSON.parse(atob(encoded)) as { iat?: number };
+		const payload = JSON.parse(atob(encoded)) as { iat?: number; userId?: string };
 		if (!payload.iat) return false;
+		// Require userId in token (multi-user format)
+		if (!payload.userId) return false;
 		const age = Math.floor(Date.now() / 1000) - payload.iat;
 		return age >= 0 && age < 60 * 60 * 24 * 30; // 30 days
 	} catch {
@@ -50,6 +52,7 @@ export async function middleware(request: NextRequest) {
 	// Public routes that don't require auth
 	if (
 		pathname === '/login' ||
+		pathname === '/signup' ||
 		pathname === '/design' ||
 		pathname.startsWith('/api/auth/') ||
 		pathname.startsWith('/api/admin/') ||
@@ -65,11 +68,13 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 
-	const token = request.cookies.get('pk_session')?.value;
-	if (!token) {
+	const rawToken = request.cookies.get('pk_session')?.value;
+	if (!rawToken) {
 		return NextResponse.redirect(new URL('/login', request.url));
 	}
 
+	// Cookie values may be URL-encoded by the framework; decode before verification
+	const token = decodeURIComponent(rawToken);
 	const valid = await verifyTokenEdge(token, secret);
 	if (!valid) {
 		const response = NextResponse.redirect(new URL('/login', request.url));

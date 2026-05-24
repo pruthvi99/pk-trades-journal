@@ -10,12 +10,38 @@
  */
 
 import { relations } from 'drizzle-orm';
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+// ─── Users ──────────────────────────────────────────────────────────────────
+
+export const users = sqliteTable('users', {
+	id: text('id').primaryKey(),
+	passcode: text('passcode').notNull().unique(),
+	displayName: text('display_name'),
+	isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
+	createdAt: text('created_at').notNull(),
+});
+
+// ─── User settings (per-user key-value) ─────────────────────────────────────
+
+export const userSettings = sqliteTable(
+	'user_settings',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		key: text('key').notNull(),
+		value: text('value'),
+		updatedAt: text('updated_at').notNull(),
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.key] })],
+);
 
 // ─── Reference / lookup tables ───────────────────────────────────────────────
 
 export const strategies = sqliteTable('strategies', {
 	id: text('id').primaryKey(),
+	userId: text('user_id').references(() => users.id),
 	name: text('name').notNull().unique(),
 	description: text('description'),
 	defaultInstrument: text('default_instrument', { enum: ['option', 'stock'] }),
@@ -26,6 +52,7 @@ export const strategies = sqliteTable('strategies', {
 
 export const tags = sqliteTable('tags', {
 	id: text('id').primaryKey(),
+	userId: text('user_id').references(() => users.id),
 	label: text('label').notNull().unique(),
 	category: text('category', {
 		enum: ['setup', 'context', 'psychology', 'mistake', 'custom'],
@@ -38,6 +65,7 @@ export const tags = sqliteTable('tags', {
 
 export const trades = sqliteTable('trades', {
 	id: text('id').primaryKey(),
+	userId: text('user_id').references(() => users.id),
 	symbol: text('symbol').notNull(),
 	instrument: text('instrument', { enum: ['option_spread', 'stock'] }).notNull(),
 	direction: text('direction', { enum: ['long', 'short', 'neutral'] }).notNull(),
@@ -178,15 +206,41 @@ export const auditLog = sqliteTable('audit_log', {
 
 // ─── Relations ───────────────────────────────────────────────────────────────
 
-export const strategiesRelations = relations(strategies, ({ many }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
+	trades: many(trades),
+	strategies: many(strategies),
+	tags: many(tags),
+	settings: many(userSettings),
+}));
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+	user: one(users, {
+		fields: [userSettings.userId],
+		references: [users.id],
+	}),
+}));
+
+export const strategiesRelations = relations(strategies, ({ one, many }) => ({
+	user: one(users, {
+		fields: [strategies.userId],
+		references: [users.id],
+	}),
 	trades: many(trades),
 }));
 
-export const tagsRelations = relations(tags, ({ many }) => ({
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+	user: one(users, {
+		fields: [tags.userId],
+		references: [users.id],
+	}),
 	tradeTags: many(tradeTags),
 }));
 
 export const tradesRelations = relations(trades, ({ one, many }) => ({
+	user: one(users, {
+		fields: [trades.userId],
+		references: [users.id],
+	}),
 	strategy: one(strategies, {
 		fields: [trades.strategyId],
 		references: [strategies.id],
@@ -231,6 +285,9 @@ export const tradeTagsRelations = relations(tradeTags, ({ one }) => ({
 
 // ─── Type exports ────────────────────────────────────────────────────────────
 
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type UserSetting = typeof userSettings.$inferSelect;
 export type Strategy = typeof strategies.$inferSelect;
 export type NewStrategy = typeof strategies.$inferInsert;
 export type Tag = typeof tags.$inferSelect;

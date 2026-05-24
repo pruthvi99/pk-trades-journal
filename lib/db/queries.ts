@@ -1,6 +1,7 @@
 /**
  * Database query functions for all CRUD operations.
  * Keeps route handlers thin — all DB logic lives here.
+ * All data-fetching functions accept userId for multi-user isolation.
  */
 
 import { and, desc, eq, inArray, like } from 'drizzle-orm';
@@ -31,22 +32,27 @@ import {
 	tradeScreenshots,
 	trades,
 	tradeTags,
+	userSettings,
 } from './schema';
 
 // ─── Strategies ─────────────────────────────────────────────────────────────
 
-/** List all strategies, optionally including archived. */
-export function listStrategies(includeArchived = false): Strategy[] {
+/** List all strategies for a user, optionally including archived. */
+export function listStrategies(includeArchived = false, userId?: string): Strategy[] {
 	const db = getDb();
-	if (includeArchived) {
-		return db.select().from(strategies).orderBy(strategies.name).all();
+	const conditions = [];
+	if (!includeArchived) {
+		conditions.push(eq(strategies.archived, false));
 	}
-	return db
-		.select()
-		.from(strategies)
-		.where(eq(strategies.archived, false))
-		.orderBy(strategies.name)
-		.all();
+	if (userId) {
+		conditions.push(eq(strategies.userId, userId));
+	}
+	const where = conditions.length > 0 ? and(...conditions) : undefined;
+	let query = db.select().from(strategies);
+	if (where) {
+		query = query.where(where) as typeof query;
+	}
+	return query.orderBy(strategies.name).all();
 }
 
 /** Get a single strategy by ID. */
@@ -60,11 +66,13 @@ export function createStrategy(input: {
 	name: string;
 	description?: string;
 	defaultInstrument?: 'option' | 'stock';
+	userId?: string;
 }): Strategy {
 	const db = getDb();
 	const now = nowUtc();
 	const row: NewStrategy = {
 		id: uuid(),
+		userId: input.userId ?? null,
 		name: input.name,
 		description: input.description ?? null,
 		defaultInstrument: input.defaultInstrument ?? null,
@@ -98,18 +106,22 @@ export function updateStrategy(
 
 // ─── Tags ───────────────────────────────────────────────────────────────────
 
-/** List all tags, optionally including archived. */
-export function listTags(includeArchived = false): Tag[] {
+/** List all tags for a user, optionally including archived. */
+export function listTags(includeArchived = false, userId?: string): Tag[] {
 	const db = getDb();
-	if (includeArchived) {
-		return db.select().from(tags).orderBy(tags.category, tags.label).all();
+	const conditions = [];
+	if (!includeArchived) {
+		conditions.push(eq(tags.archived, false));
 	}
-	return db
-		.select()
-		.from(tags)
-		.where(eq(tags.archived, false))
-		.orderBy(tags.category, tags.label)
-		.all();
+	if (userId) {
+		conditions.push(eq(tags.userId, userId));
+	}
+	const where = conditions.length > 0 ? and(...conditions) : undefined;
+	let query = db.select().from(tags);
+	if (where) {
+		query = query.where(where) as typeof query;
+	}
+	return query.orderBy(tags.category, tags.label).all();
 }
 
 /** Get a single tag by ID. */
@@ -122,10 +134,12 @@ export function getTag(id: string): Tag | undefined {
 export function createTag(input: {
 	label: string;
 	category: 'setup' | 'context' | 'psychology' | 'mistake' | 'custom';
+	userId?: string;
 }): Tag {
 	const db = getDb();
 	const row: NewTag = {
 		id: uuid(),
+		userId: input.userId ?? null,
 		label: input.label,
 		category: input.category,
 		archived: false,
@@ -183,8 +197,9 @@ export interface TradeWithRelations extends Trade {
 	tagList: Tag[];
 }
 
-/** List trades with filters. */
+/** List trades with filters, scoped to a user. */
 export function listTrades(filters?: {
+	userId?: string;
 	status?: string;
 	symbol?: string;
 	strategyId?: string;
@@ -198,6 +213,9 @@ export function listTrades(filters?: {
 	const db = getDb();
 	const conditions = [];
 
+	if (filters?.userId) {
+		conditions.push(eq(trades.userId, filters.userId));
+	}
 	if (filters?.status) {
 		conditions.push(eq(trades.status, filters.status as 'open' | 'closed' | 'cancelled'));
 	}
@@ -308,6 +326,7 @@ export function getTrade(id: string): TradeWithRelations | undefined {
 
 /** Create a trade with its first execution, legs, screenshots, and tags. */
 export function createTrade(input: {
+	userId?: string;
 	symbol: string;
 	instrument: 'option_spread' | 'stock';
 	direction: 'long' | 'short' | 'neutral';
@@ -353,6 +372,7 @@ export function createTrade(input: {
 	// Create the trade
 	const tradeRow: NewTrade = {
 		id: tradeId,
+		userId: input.userId ?? null,
 		symbol: input.symbol,
 		instrument: input.instrument,
 		direction: input.direction,
@@ -691,19 +711,24 @@ export function recomputeTradePnl(tradeId: string): void {
 		};
 	});
 
-	const realizedPnlUsd = computeRealizedPnl(pnlExecutions);
-	const realizedPnlR = computeRMultiple(realizedPnlUsd, trade.plannedRiskUsd);
 	const feesUsd = computeTotalFees(pnlExecutions);
 
-	db.update(trades)
-		.set({
-			realizedPnlUsd,
-			realizedPnlR,
-			feesUsd,
-			updatedAt: nowUtc(),
-		})
-		.where(eq(trades.id, tradeId))
-		.run();
+	// Only compute realized P&L for closed trades.
+	// For open/cancelled trades, P&L is not yet realized — keep null so the
+	// UI doesn't show a misleading negative "realized" figure from entry cost alone.
+	if (trade.status === 'closed') {
+		const realizedPnlUsd = computeRealizedPnl(pnlExecutions);
+		const realizedPnlR = computeRMultiple(realizedPnlUsd, trade.plannedRiskUsd);
+		db.update(trades)
+			.set({ realizedPnlUsd, realizedPnlR, feesUsd, updatedAt: nowUtc() })
+			.where(eq(trades.id, tradeId))
+			.run();
+	} else {
+		db.update(trades)
+			.set({ realizedPnlUsd: null, realizedPnlR: null, feesUsd, updatedAt: nowUtc() })
+			.where(eq(trades.id, tradeId))
+			.run();
+	}
 }
 
 // ─── Calendar P&L ───────────────────────────────────────────────────────────
@@ -719,18 +744,17 @@ export interface CalendarDay {
 }
 
 /**
- * Aggregate daily P&L for a given year/month.
+ * Aggregate daily P&L for a given year/month, scoped to a user.
  * Uses `closedAt` for closed trades, `openedAt` for open/cancelled.
  * Returns only days that have at least one trade.
  */
-export function getCalendarMonth(year: number, month: number): CalendarDay[] {
+export function getCalendarMonth(year: number, month: number, userId?: string): CalendarDay[] {
 	const db = getDb();
 	// month is 1-based. Build prefix like "2026-05"
 	const prefix = `${year}-${String(month).padStart(2, '0')}`;
 
 	// Fetch all trades that fall in this calendar month
-	// We match on the first 7 chars of closedAt or openedAt
-	const rows = db
+	const baseQuery = db
 		.select({
 			id: trades.id,
 			openedAt: trades.openedAt,
@@ -738,13 +762,16 @@ export function getCalendarMonth(year: number, month: number): CalendarDay[] {
 			status: trades.status,
 			realizedPnlUsd: trades.realizedPnlUsd,
 			realizedPnlR: trades.realizedPnlR,
+			userId: trades.userId,
 		})
-		.from(trades)
-		.all()
-		.filter((t) => {
+		.from(trades);
+
+	const rows = (userId ? baseQuery.where(eq(trades.userId, userId)).all() : baseQuery.all()).filter(
+		(t) => {
 			const dateStr = t.closedAt ?? t.openedAt;
 			return dateStr.startsWith(prefix);
-		});
+		},
+	);
 
 	// Group by date
 	const byDate = new Map<string, CalendarDay>();
@@ -778,14 +805,76 @@ export function getCalendarMonth(year: number, month: number): CalendarDay[] {
 
 // ─── Symbol autocomplete ────────────────────────────────────────────────────
 
-/** Get distinct symbols from prior trades for autocomplete. */
-export function getDistinctSymbols(): string[] {
+/** Get distinct symbols from prior trades for autocomplete, scoped to a user. */
+export function getDistinctSymbols(userId?: string): string[] {
 	const db = getDb();
-	const rows = db
-		.select({ symbol: trades.symbol })
-		.from(trades)
-		.groupBy(trades.symbol)
-		.orderBy(trades.symbol)
-		.all();
+	let query = db.select({ symbol: trades.symbol }).from(trades);
+	if (userId) {
+		query = query.where(eq(trades.userId, userId)) as typeof query;
+	}
+	const rows = query.groupBy(trades.symbol).orderBy(trades.symbol).all();
 	return rows.map((r) => r.symbol);
+}
+
+// ─── User Settings ──────────────────────────────────────────────────────────
+
+/** Known settings and their defaults. */
+const SETTING_DEFAULTS: Record<string, string> = {
+	timezone: 'America/Chicago',
+	startingBalance: '25000',
+	commissionPerContract: '0.65',
+	commissionPerShare: '0.005',
+};
+
+/** Get settings for a user, falling back to defaults. */
+export function getUserSettings(userId: string): Record<string, string> {
+	const db = getDb();
+	const rows = db.select().from(userSettings).where(eq(userSettings.userId, userId)).all();
+
+	const result: Record<string, string> = { ...SETTING_DEFAULTS };
+	for (const row of rows) {
+		result[row.key] = row.value ?? SETTING_DEFAULTS[row.key] ?? '';
+	}
+	return result;
+}
+
+/** Update settings for a user (upsert). */
+export function updateUserSettings(
+	userId: string,
+	updates: Record<string, string>,
+): Record<string, string> {
+	const db = getDb();
+	const now = new Date().toISOString();
+
+	for (const [key, value] of Object.entries(updates)) {
+		const existing = db
+			.select()
+			.from(userSettings)
+			.where(and(eq(userSettings.userId, userId), eq(userSettings.key, key)))
+			.get();
+
+		if (existing) {
+			db.update(userSettings)
+				.set({ value, updatedAt: now })
+				.where(and(eq(userSettings.userId, userId), eq(userSettings.key, key)))
+				.run();
+		} else {
+			db.insert(userSettings).values({ userId, key, value, updatedAt: now }).run();
+		}
+	}
+
+	return getUserSettings(userId);
+}
+
+// ─── Trade ownership check ──────────────────────────────────────────────────
+
+/** Check if a trade belongs to a specific user. */
+export function isTradeOwnedByUser(tradeId: string, userId: string): boolean {
+	const db = getDb();
+	const trade = db
+		.select({ userId: trades.userId })
+		.from(trades)
+		.where(eq(trades.id, tradeId))
+		.get();
+	return trade?.userId === userId;
 }
