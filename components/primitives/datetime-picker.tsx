@@ -306,11 +306,13 @@ export function DateTimePicker({
 									handleHourChange(h < 12 ? h + 12 : h - 12);
 								}}
 								className={cn(
-									'ml-1 h-7 px-2 rounded-[4px] text-[11px] font-semibold uppercase tracking-wide transition-colors',
-									'border border-pk-border bg-pk-black-sunken',
-									'hover:border-pk-border-strong hover:text-pk-white',
-									'focus:outline-none focus:border-pk-purple',
-									getHours(selectedDate) >= 12 ? 'text-pk-purple-bright' : 'text-pk-white-muted',
+									'ml-1.5 h-7 min-w-[38px] px-2 rounded-[4px] text-[12px] font-bold uppercase tracking-wider cursor-pointer select-none transition-all duration-150',
+									'border',
+									'active:scale-95',
+									'focus:outline-none focus:ring-1 focus:ring-pk-purple/40',
+									getHours(selectedDate) >= 12
+										? 'bg-pk-purple/15 border-pk-purple/40 text-pk-purple-bright hover:bg-pk-purple/25 hover:border-pk-purple/60'
+										: 'bg-pk-purple/10 border-pk-purple/30 text-pk-purple hover:bg-pk-purple/20 hover:border-pk-purple/50',
 								)}
 							>
 								{getHours(selectedDate) >= 12 ? 'PM' : 'AM'}
