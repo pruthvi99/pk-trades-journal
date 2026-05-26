@@ -123,6 +123,110 @@ async function testAuth() {
   return sessions;
 }
 
+async function testSignupFlow() {
+  section('Signup Flow (Session Cookie + Default Tag Seeding)');
+
+  // Timestamp-based passcode — unique across runs (6 digits, avoids sequential/repetitive patterns).
+  // NOTE: Run uat-seed.mjs before this script to ensure a clean DB state.
+  const raw = String(Date.now()).slice(-6);
+  const seqPatterns = ['012345', '123456', '234567', '345678', '456789', '543210', '654321', '765432', '876543', '987654'];
+  const TEST_PASSCODE = /^(\d)\1{5}$/.test(raw) || seqPatterns.includes(raw) ? '724935' : raw;
+
+  let signupCookie = null;
+
+  // ── 1. Signup returns 201 + sets pk_session cookie ─────────────────────────────────
+  // Root cause of prod bug: signup returned 201 but set NO session cookie.
+  // User was redirected to /login with no session → retried signup → got 409 "already in use" loop.
+  await check('POST /api/auth/signup returns 201 + sets pk_session cookie', async () => {
+    const res = await request('POST', '/api/auth/signup', { passcode: TEST_PASSCODE });
+    if (res.status !== 201)
+      throw new Error(
+        `Expected 201, got ${res.status}${res.status === 409 ? ' — run uat-seed.mjs first to clear test data' : ''}: ${JSON.stringify(res.json)}`,
+      );
+
+    // CRITICAL: pk_session cookie must be present — absence causes the "already in use" loop
+    const setCookie = res.cookie || '';
+    const match = setCookie.match(/pk_session=([^;]+)/);
+    if (!match)
+      throw new Error(
+        'pk_session cookie NOT set in signup response — user will hit "passcode already in use" loop on retry',
+      );
+
+    signupCookie = `pk_session=${match[1]}`;
+    return true;
+  });
+
+  // ── 2. Session from signup grants immediate API access (no re-login required) ────────
+  await check('Signup session cookie allows immediate authenticated API access', async () => {
+    if (!signupCookie) throw new Error('No signup cookie — first test failed');
+    const res = await request('GET', '/api/tags', null, signupCookie);
+    if (res.status !== 200)
+      throw new Error(
+        `Expected 200, got ${res.status} — signup session is broken, user cannot reach dashboard`,
+      );
+    return true;
+  });
+
+  // ── 3. New user has 26 default tags seeded ─────────────────────────────────────────
+  // Root cause of prod chip bug: existing users had 0 tags → chip-select never rendered.
+  await check('New user has ≥26 default tags seeded at signup', async () => {
+    if (!signupCookie) throw new Error('No signup cookie');
+    const res = await request('GET', '/api/tags', null, signupCookie);
+    if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
+    const count = Array.isArray(res.json) ? res.json.length : 0;
+    if (count < 26)
+      throw new Error(
+        `Got ${count} tags — expected ≥26. Chip selects will be empty for all new users.`,
+      );
+    return true;
+  });
+
+  // ── 4. Psychology tags present (pre-trade chip-select depends on them) ──────────────
+  await check('New user has ≥5 psychology tags (pre-trade chip-select requires them)', async () => {
+    if (!signupCookie) throw new Error('No signup cookie');
+    const res = await request('GET', '/api/tags', null, signupCookie);
+    if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
+    const psychTags = (res.json || []).filter(t => t.category === 'psychology');
+    if (psychTags.length < 5)
+      throw new Error(
+        `Got ${psychTags.length} psychology tags — pre-trade chip-select will not render`,
+      );
+    return true;
+  });
+
+  // ── 5. Mistake tags present (post-trade chip-select depends on them) ──────────────
+  await check('New user has ≥9 mistake tags (post-trade chip-select requires them)', async () => {
+    if (!signupCookie) throw new Error('No signup cookie');
+    const res = await request('GET', '/api/tags', null, signupCookie);
+    if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
+    const mistakeTags = (res.json || []).filter(t => t.category === 'mistake');
+    if (mistakeTags.length < 9)
+      throw new Error(
+        `Got ${mistakeTags.length} mistake tags — post-trade chip-select will not render`,
+      );
+    return true;
+  });
+
+  // ── 6. Duplicate passcode returns 409 ────────────────────────────────────────────
+  await check('Duplicate passcode returns 409 Conflict', async () => {
+    const res = await request('POST', '/api/auth/signup', { passcode: TEST_PASSCODE });
+    if (res.status !== 409)
+      throw new Error(`Expected 409, got ${res.status} — passcode uniqueness not enforced`);
+    return true;
+  });
+
+  // ── 7. Pattern validation at signup ──────────────────────────────────────────────
+  await check('Sequential passcode 123456 rejected at signup (400)', async () => {
+    const res = await request('POST', '/api/auth/signup', { passcode: '123456' });
+    return res.status === 400;
+  });
+
+  await check('Repeated-digit passcode 999999 rejected at signup (400)', async () => {
+    const res = await request('POST', '/api/auth/signup', { passcode: '999999' });
+    return res.status === 400;
+  });
+}
+
 async function testSettings(sessions) {
   section('Settings Per-User Isolation');
 
@@ -285,6 +389,31 @@ async function testTagsIsolation(sessions) {
       { archived: true }, sessions['222222']);
     return res.status === 404;
   });
+
+  // ── Default seeding verification — every UAT user must have chip prerequisites ──────
+  // Root cause of prod chip bug: users created before seeding was wired up had 0 tags.
+  // This verifies db:migrate backfill ran correctly for all existing users.
+  section('Tags — Default Seeding Verification (Chip Prerequisites)');
+  for (const user of USERS) {
+    await check(`${user.name} — ≥26 default tags, psychology + mistake categories present`, async () => {
+      const res = await request('GET', '/api/tags', null, sessions[user.passcode]);
+      if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
+      const tags = Array.isArray(res.json) ? res.json : [];
+
+      if (tags.length < 26)
+        throw new Error(`Only ${tags.length} tags — expected ≥26 seeded defaults (chip-selects will be empty)`);
+
+      const psychCount = tags.filter(t => t.category === 'psychology').length;
+      if (psychCount < 5)
+        throw new Error(`Only ${psychCount} psychology tags — pre-trade chip-select will not render`);
+
+      const mistakeCount = tags.filter(t => t.category === 'mistake').length;
+      if (mistakeCount < 9)
+        throw new Error(`Only ${mistakeCount} mistake tags — post-trade chip-select will not render`);
+
+      return true;
+    });
+  }
 }
 
 async function testStrategiesIsolation(sessions) {
@@ -686,6 +815,7 @@ if (!ping) {
 }
 
 const sessions = await testAuth();
+await testSignupFlow();
 await testSettings(sessions);
 await testTradesIsolation(sessions);
 await testTagsIsolation(sessions);

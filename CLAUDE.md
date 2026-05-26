@@ -1177,14 +1177,18 @@ node scripts/uat-api-test.mjs
 - **Database:** `/var/data/pk_trades.db`
 - **Process manager:** PM2 (app name: `pk-trades`)
 - **Reverse proxy:** Caddy (handles HTTPS, proxies to port 9999)
-- **Git remotes:**
+- **Git remotes (local dev machine):**
   - `github` → GitHub (push target for production deploy)
   - `origin` → GitLab
+- **Git remotes (production server `/opt/pk-trades`):**
+  - `origin` → GitHub
 
 ### Deploy Process
 
+> **Critical:** Always run `pnpm build` before `pm2 restart`. The app serves a pre-compiled `.next` bundle — skipping the build means the server continues to run the old code even after `git pull`.
+
 ```bash
-# 1. Commit and push to GitHub
+# 1. Commit and push to GitHub (from local dev machine)
 git add <files>
 git commit -m "description"
 git push github main
@@ -1192,9 +1196,10 @@ git push github main
 # 2. SSH to server and deploy
 ssh root@161.35.119.190
 cd /opt/pk-trades
-git pull github main
-npm install
-npm run db:migrate
+git pull origin main        # server remote is "origin" (not "github")
+pnpm install                # use pnpm — npm fails on workspace:^ protocol
+npm run db:migrate          # apply pending migrations + backfill tags
+pnpm build                  # REQUIRED: compile new .next bundle before restart
 pm2 restart pk-trades
 
 # 3. Verify
