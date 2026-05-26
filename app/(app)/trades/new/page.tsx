@@ -57,6 +57,9 @@ export default function NewTradePage() {
 		return now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
 	});
 
+	// Stop loss (for risk / R-multiple calculation)
+	const [stopLoss, setStopLoss] = useState('');
+
 	// Status
 	const [status, setStatus] = useState<'open' | 'closed'>('closed');
 	const [closedAt, setClosedAt] = useState(() => {
@@ -145,6 +148,37 @@ export default function NewTradePage() {
 				}),
 	});
 
+	// Auto-calculate risk from entry legs + stop loss
+	const computedRisk = (() => {
+		const stop = Number(stopLoss);
+		if (!stop) return null;
+
+		if (instrument === 'stock') {
+			let totalShares = 0;
+			let weightedCost = 0;
+			for (const leg of legs) {
+				const qty = leg.shares || 0;
+				totalShares += qty;
+				weightedCost += leg.price * qty;
+			}
+			if (totalShares === 0 || weightedCost === 0) return null;
+			const avgPrice = weightedCost / totalShares;
+			return Math.abs(avgPrice - stop) * totalShares;
+		}
+
+		// Options: risk per contract = |entry premium - stop| × multiplier
+		let totalContracts = 0;
+		let weightedPremium = 0;
+		for (const leg of legs) {
+			const qty = leg.contracts || 0;
+			totalContracts += qty;
+			weightedPremium += leg.price * qty;
+		}
+		if (totalContracts === 0 || weightedPremium === 0) return null;
+		const avgPremium = weightedPremium / totalContracts;
+		return Math.abs(avgPremium - stop) * totalContracts * 100;
+	})();
+
 	const handleSubmit = async () => {
 		setError('');
 		setSaving(true);
@@ -160,6 +194,8 @@ export default function NewTradePage() {
 				direction,
 				strategyId: strategyId || undefined,
 				openedAt: new Date(openedAt).toISOString(),
+				plannedStop: stopLoss ? Number(stopLoss) : undefined,
+				plannedRiskUsd: computedRisk ?? undefined,
 				notesMd: notesMd || undefined,
 				tradeQuality: tradeQuality || undefined,
 				tradeBasis: tradeBasis || undefined,
@@ -389,13 +425,40 @@ export default function NewTradePage() {
 				</div>
 			</section>
 
-			{/* Section 4: Entry execution */}
+			{/* Section 3: Entry execution */}
 			<section className="space-y-4">
 				<p className="eyebrow">Entry execution</p>
 				<LegBuilder instrument={instrument} legs={legs} onChange={setLegs} />
+
+				{/* Stop loss + computed risk */}
+				<div className="grid grid-cols-2 gap-3">
+					<div>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Stop loss
+						</label>
+						<Input
+							numeric
+							type="number"
+							step="0.01"
+							placeholder="0.00"
+							value={stopLoss}
+							onChange={(e) => setStopLoss(e.target.value)}
+						/>
+					</div>
+					<div>
+						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+							Risk ($)
+						</label>
+						<div className="flex h-11 sm:h-8 items-center rounded-[6px] border border-pk-border bg-pk-black-sunken px-4 sm:px-3">
+							<span className="text-[16px] sm:text-[13px] font-mono tabular-nums text-pk-white-muted">
+								{computedRisk !== null ? `$${computedRisk.toFixed(2)}` : '—'}
+							</span>
+						</div>
+					</div>
+				</div>
 			</section>
 
-			{/* Section 4b: Exit execution — only when closing */}
+			{/* Section 4: Exit execution — only when closing */}
 			{status === 'closed' && (
 				<section className="space-y-4">
 					<p className="eyebrow">Exit execution</p>
