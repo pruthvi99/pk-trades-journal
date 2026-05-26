@@ -128,7 +128,9 @@ function JournalContent() {
 				(t.notesMd ?? '').replace(/\n/g, ' ').slice(0, 100),
 			];
 		});
-		const csv = [headers, ...rows].map((row) => row.map((c) => `"${c}"`).join(',')).join('\n');
+		const csv = [headers, ...rows]
+			.map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+			.join('\n');
 		const blob = new Blob([csv], { type: 'text/csv' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');

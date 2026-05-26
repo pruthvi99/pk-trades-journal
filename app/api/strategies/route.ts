@@ -33,7 +33,14 @@ export async function POST(request: Request) {
 		}
 		const strategy = createStrategy({ ...parsed.data, userId });
 		return NextResponse.json(strategy, { status: 201 });
-	} catch {
+	} catch (err) {
+		const message = err instanceof Error ? err.message : '';
+		if (message.includes('UNIQUE constraint')) {
+			return NextResponse.json(
+				{ error: 'A strategy with this name already exists' },
+				{ status: 409 },
+			);
+		}
 		return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 	}
 }

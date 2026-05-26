@@ -219,6 +219,7 @@ export default function SettingsPage() {
 									numeric
 									type="number"
 									step="100"
+									min="1"
 									value={settingsMap.startingBalance ?? '25000'}
 									onChange={(e) => updateSetting('startingBalance', e.target.value)}
 								/>

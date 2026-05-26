@@ -97,10 +97,17 @@ interface MetricsData {
 export default function MetricsPage() {
 	const [data, setData] = useState<MetricsData | null>(null);
 	const [loading, setLoading] = useState(true);
-	const startingBalance = 25000; // TODO: read from settings
+	const [startingBalance, setStartingBalance] = useState(25000);
 
 	useEffect(() => {
-		fetch(`/api/metrics?startingBalance=${startingBalance}`)
+		// Load settings first to get the user's starting balance, then fetch metrics
+		fetch('/api/settings')
+			.then((r) => r.json())
+			.then((settings: Record<string, string>) => {
+				const balance = Number(settings.startingBalance ?? 25000);
+				setStartingBalance(balance);
+				return fetch(`/api/metrics?startingBalance=${balance}`);
+			})
 			.then((r) => r.json())
 			.then((d) => {
 				setData(d as MetricsData);

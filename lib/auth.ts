@@ -9,6 +9,7 @@ import { eq } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { getDb } from './db/client';
 import { type User, users } from './db/schema';
+import { seedDefaultTags } from './db/seed-defaults';
 import { nowUtc } from './time';
 
 const COOKIE_NAME = 'pk_session';
@@ -95,6 +96,10 @@ export function createUser(passcode: string, displayName?: string): User {
 			createdAt: now,
 		})
 		.run();
+
+	// Seed default tags (mistake, setup, context, psychology) for the new user
+	seedDefaultTags(id);
+
 	return db.select().from(users).where(eq(users.id, id)).get()!;
 }
 

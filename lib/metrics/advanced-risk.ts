@@ -20,13 +20,13 @@ export interface AdvRiskTrade {
  * Uses per-trade P&L as "returns" (not daily).
  * Annualized by √(trades per year) if annualize=true.
  */
-export function sharpeRatio(trades: AdvRiskTrade[], annualize = false): number {
+export function sharpeRatio(trades: AdvRiskTrade[], annualize = false): number | null {
 	const pnls = closedPnls(trades);
 	if (pnls.length < 2) return 0;
 
 	const mean = avg(pnls);
 	const std = stddev(pnls);
-	if (std === 0) return mean > 0 ? Infinity : 0;
+	if (std === 0) return mean > 0 ? null : 0; // null = "undefined/infinite" — JSON-safe
 
 	let ratio = mean / std;
 	if (annualize) {
@@ -40,16 +40,16 @@ export function sharpeRatio(trades: AdvRiskTrade[], annualize = false): number {
  * Sortino Ratio = mean(returns) / downside_deviation.
  * Only uses negative returns for volatility calculation.
  */
-export function sortinoRatio(trades: AdvRiskTrade[], annualize = false): number {
+export function sortinoRatio(trades: AdvRiskTrade[], annualize = false): number | null {
 	const pnls = closedPnls(trades);
 	if (pnls.length < 2) return 0;
 
 	const mean = avg(pnls);
 	const negatives = pnls.filter((p) => p < 0);
-	if (negatives.length === 0) return mean > 0 ? Infinity : 0;
+	if (negatives.length === 0) return mean > 0 ? null : 0; // null = no losses (∞ Sortino) — JSON-safe
 
-	const downsideDev = Math.sqrt(negatives.reduce((s, p) => s + p * p, 0) / pnls.length);
-	if (downsideDev === 0) return mean > 0 ? Infinity : 0;
+	const downsideDev = Math.sqrt(negatives.reduce((s, p) => s + p * p, 0) / negatives.length);
+	if (downsideDev === 0) return mean > 0 ? null : 0;
 
 	let ratio = mean / downsideDev;
 	if (annualize) {
@@ -60,17 +60,33 @@ export function sortinoRatio(trades: AdvRiskTrade[], annualize = false): number 
 
 /**
  * Calmar Ratio = annualized return / max drawdown.
+ * Annualizes the total P&L based on the actual trading period.
  */
-export function calmarRatio(totalPnl: number, maxDrawdownUsd: number): number {
-	if (maxDrawdownUsd === 0) return totalPnl > 0 ? Infinity : 0;
-	return r2(totalPnl / maxDrawdownUsd);
+export function calmarRatio(
+	trades: AdvRiskTrade[],
+	totalPnl: number,
+	maxDrawdownUsd: number,
+): number | null {
+	if (maxDrawdownUsd === 0) return totalPnl > 0 ? null : 0; // null = no drawdown (∞ Calmar) — JSON-safe
+	const closed = trades.filter((t) => t.status === 'closed' && t.closedAt != null);
+	if (closed.length < 2) return r2(totalPnl / maxDrawdownUsd);
+	const sorted = [...closed].sort((a, b) => a.closedAt!.localeCompare(b.closedAt!));
+	const daySpan = Math.max(
+		1,
+		(new Date(sorted[sorted.length - 1]!.closedAt!).getTime() -
+			new Date(sorted[0]!.closedAt!).getTime()) /
+			86_400_000,
+	);
+	const annualizedPnl = totalPnl * (365 / daySpan);
+	return r2(annualizedPnl / maxDrawdownUsd);
 }
 
 /**
  * Recovery Factor = total net profit / max drawdown.
+ * Shows how many times over profit has recovered the worst drawdown.
  */
-export function recoveryFactor(totalPnl: number, maxDrawdownUsd: number): number {
-	if (maxDrawdownUsd === 0) return totalPnl > 0 ? Infinity : 0;
+export function recoveryFactor(totalPnl: number, maxDrawdownUsd: number): number | null {
+	if (maxDrawdownUsd === 0) return totalPnl > 0 ? null : 0; // null = no drawdown (∞ recovery) — JSON-safe
 	return r2(totalPnl / maxDrawdownUsd);
 }
 

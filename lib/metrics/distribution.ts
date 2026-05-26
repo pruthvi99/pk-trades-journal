@@ -126,8 +126,9 @@ export function streaks(trades: DistributionTrade[]): StreakResult {
 	let currentType: 'win' | 'loss' | 'none' = 'none';
 
 	for (const t of sorted) {
-		const isWin = (t.realizedPnlUsd ?? 0) > 0;
-		const type = isWin ? 'win' : 'loss';
+		const pnl = t.realizedPnlUsd ?? 0;
+		if (pnl === 0) continue; // skip breakeven trades — they don't extend or break a streak
+		const type = pnl > 0 ? 'win' : 'loss';
 
 		if (type === currentType) {
 			currentCount++;

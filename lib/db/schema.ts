@@ -10,7 +10,7 @@
  */
 
 import { relations } from 'drizzle-orm';
-import { integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, primaryKey, real, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core';
 
 // ─── Users ──────────────────────────────────────────────────────────────────
 
@@ -39,27 +39,35 @@ export const userSettings = sqliteTable(
 
 // ─── Reference / lookup tables ───────────────────────────────────────────────
 
-export const strategies = sqliteTable('strategies', {
-	id: text('id').primaryKey(),
-	userId: text('user_id').references(() => users.id),
-	name: text('name').notNull().unique(),
-	description: text('description'),
-	defaultInstrument: text('default_instrument', { enum: ['option', 'stock'] }),
-	archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
-	createdAt: text('created_at').notNull(),
-	updatedAt: text('updated_at').notNull(),
-});
+export const strategies = sqliteTable(
+	'strategies',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id').references(() => users.id),
+		name: text('name').notNull(),
+		description: text('description'),
+		defaultInstrument: text('default_instrument', { enum: ['option', 'stock'] }),
+		archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
+		createdAt: text('created_at').notNull(),
+		updatedAt: text('updated_at').notNull(),
+	},
+	(table) => [unique('strategies_user_name_unique').on(table.userId, table.name)],
+);
 
-export const tags = sqliteTable('tags', {
-	id: text('id').primaryKey(),
-	userId: text('user_id').references(() => users.id),
-	label: text('label').notNull().unique(),
-	category: text('category', {
-		enum: ['setup', 'context', 'psychology', 'mistake', 'custom'],
-	}).notNull(),
-	archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
-	createdAt: text('created_at').notNull(),
-});
+export const tags = sqliteTable(
+	'tags',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id').references(() => users.id),
+		label: text('label').notNull(),
+		category: text('category', {
+			enum: ['setup', 'context', 'psychology', 'mistake', 'custom'],
+		}).notNull(),
+		archived: integer('archived', { mode: 'boolean' }).notNull().default(false),
+		createdAt: text('created_at').notNull(),
+	},
+	(table) => [unique('tags_user_label_unique').on(table.userId, table.label)],
+);
 
 // ─── Trades ──────────────────────────────────────────────────────────────────
 

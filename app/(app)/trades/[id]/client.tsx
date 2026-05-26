@@ -6,7 +6,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/primitives/badge';
 import { Button } from '@/components/primitives/button';
 import {
@@ -60,6 +60,28 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 	]);
 	const [postPsychology, setPostPsychology] = useState<PostPsychologyData>({});
 	const [closeSaving, setCloseSaving] = useState(false);
+	const [mistakeTagIds, setMistakeTagIds] = useState<string[]>([]);
+	const [availableTags, setAvailableTags] = useState<
+		Array<{ id: string; label: string; category: string }>
+	>([]);
+	const [tagsFetched, setTagsFetched] = useState(false);
+
+	// Load tags when close dialog opens (fetch once, don't retry on error to avoid loop)
+	useEffect(() => {
+		if (closeTradeOpen && !tagsFetched) {
+			setTagsFetched(true);
+			fetch('/api/tags')
+				.then((r) => r.json())
+				.then((tags: Array<{ id: string; label: string; category: string }>) =>
+					setAvailableTags(tags),
+				)
+				.catch(() => {
+					// silently fail — mistake chips just won't appear
+				});
+		}
+	}, [closeTradeOpen, tagsFetched]);
+
+	const mistakeChipTags = availableTags.filter((t) => t.category === 'mistake');
 
 	// During psychology
 	const [duringPsychology, setDuringPsychology] = useState<DuringPsychologyData>({
@@ -137,13 +159,18 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 				}),
 			});
 
-			// Update trade status + post psychology
+			// Merge existing trade tags with newly selected mistake tags
+			const existingTagIds = trade.tagList.map((t) => t.id);
+			const mergedTagIds = [...new Set([...existingTagIds, ...mistakeTagIds])];
+
+			// Update trade status + post psychology + tags
 			await fetch(`/api/trades/${trade.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					status: 'closed',
 					closedAt: new Date().toISOString(),
+					tagIds: mergedTagIds,
 					...postPsychology,
 				}),
 			});
@@ -247,7 +274,13 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 										legs={closeLegs}
 										onChange={setCloseLegs}
 									/>
-									<PostPsychologyFields data={postPsychology} onChange={setPostPsychology} />
+									<PostPsychologyFields
+										data={postPsychology}
+										onChange={setPostPsychology}
+										mistakeTags={mistakeChipTags}
+										selectedMistakeTagIds={mistakeTagIds}
+										onMistakeTagsChange={setMistakeTagIds}
+									/>
 								</div>
 								<DialogFooter>
 									<DialogClose asChild>
@@ -440,19 +473,50 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 							</div>
 						)}
 
-						{/* Tags */}
-						{trade.tagList.length > 0 && (
-							<div>
-								<p className="eyebrow mb-2">Tags</p>
-								<div className="flex flex-wrap gap-1">
-									{trade.tagList.map((tag) => (
-										<Badge key={tag.id} variant="default">
-											{tag.label}
-										</Badge>
-									))}
-								</div>
-							</div>
-						)}
+						{/* Tags — grouped by category */}
+						{trade.tagList.length > 0 &&
+							(() => {
+								const categoryOrder = [
+									'setup',
+									'context',
+									'psychology',
+									'mistake',
+									'custom',
+								] as const;
+								const grouped = trade.tagList.reduce<Record<string, typeof trade.tagList>>(
+									(acc, tag) => {
+										const cat = tag.category ?? 'custom';
+										if (!acc[cat]) acc[cat] = [];
+										acc[cat].push(tag);
+										return acc;
+									},
+									{},
+								);
+								return (
+									<div className="space-y-3">
+										<p className="eyebrow mb-0">Tags</p>
+										{categoryOrder
+											.filter((cat) => grouped[cat]?.length)
+											.map((cat) => (
+												<div key={cat} className="flex items-start gap-2">
+													<span className="text-[11px] text-pk-white-dim uppercase tracking-wider min-w-[72px] pt-0.5 shrink-0">
+														{cat}
+													</span>
+													<div className="flex flex-wrap gap-1">
+														{grouped[cat]!.map((tag) => (
+															<Badge
+																key={tag.id}
+																variant={cat === 'mistake' ? 'mistake' : 'default'}
+															>
+																{tag.label}
+															</Badge>
+														))}
+													</div>
+												</div>
+											))}
+									</div>
+								);
+							})()}
 
 						{/* Notes */}
 						{trade.notesMd && (
@@ -526,7 +590,49 @@ export function TradeDetailClient({ trade: initialTrade }: TradeDetailClientProp
 								<>
 									<PsychField label="Satisfaction" value={trade.postSatisfaction} suffix="/10" />
 									<PsychField label="Mood" value={trade.postMood} />
-									<PsychField label="Mistakes" value={trade.postMistakes} />
+									{/* Mistake tags as red chips */}
+									{(() => {
+										const mistakeTags = trade.tagList.filter((t) => t.category === 'mistake');
+										const psychTags = trade.tagList.filter((t) => t.category === 'psychology');
+										return (
+											<>
+												{psychTags.length > 0 && (
+													<div>
+														<span className="text-[13px] sm:text-[11px] text-pk-white-dim">
+															Mindset
+														</span>
+														<div className="flex flex-wrap gap-1 mt-1">
+															{psychTags.map((tag) => (
+																<Badge key={tag.id} variant="default">
+																	{tag.label}
+																</Badge>
+															))}
+														</div>
+													</div>
+												)}
+												{mistakeTags.length > 0 && (
+													<div>
+														<span className="text-[13px] sm:text-[11px] text-pk-white-dim">
+															Mistakes
+														</span>
+														<div className="flex flex-wrap gap-1 mt-1">
+															{mistakeTags.map((tag) => (
+																<Badge key={tag.id} variant="mistake">
+																	{tag.label}
+																</Badge>
+															))}
+														</div>
+													</div>
+												)}
+												{trade.postMistakes && (
+													<PsychField label="Mistake notes" value={trade.postMistakes} />
+												)}
+												{!mistakeTags.length && !trade.postMistakes && (
+													<PsychField label="Mistakes" value={null} />
+												)}
+											</>
+										);
+									})()}
 									<PsychField label="Lessons" value={trade.postLessons} />
 									<PsychField
 										label="Would retake"

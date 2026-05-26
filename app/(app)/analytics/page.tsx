@@ -86,10 +86,10 @@ interface AnalyticsData {
 		}>;
 	};
 	advancedRisk: {
-		sharpeRatio: number;
-		sortinoRatio: number;
-		calmarRatio: number;
-		recoveryFactor: number;
+		sharpeRatio: number | null;
+		sortinoRatio: number | null;
+		calmarRatio: number | null;
+		recoveryFactor: number | null;
 		underwaterCurve: Array<{
 			tradeIndex: number;
 			closedAt: string;
@@ -208,10 +208,17 @@ export default function AnalyticsPage() {
 	const [rollingMetric, setRollingMetric] = useState<'winRate' | 'expectancy' | 'avgR' | 'pnl'>(
 		'winRate',
 	);
-	const startingBalance = 25000;
+	const [startingBalance, setStartingBalance] = useState(25000);
 
 	useEffect(() => {
-		fetch(`/api/analytics?startingBalance=${startingBalance}`)
+		// Load settings first to get the user's starting balance, then fetch analytics
+		fetch('/api/settings')
+			.then((r) => r.json())
+			.then((settings: Record<string, string>) => {
+				const balance = Number(settings.startingBalance ?? 25000);
+				setStartingBalance(balance);
+				return fetch(`/api/analytics?startingBalance=${balance}`);
+			})
 			.then((r) => r.json())
 			.then((d) => {
 				setData(d as AnalyticsData);
@@ -757,7 +764,8 @@ export default function AnalyticsPage() {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-function fmtRatio(r: number): string {
+function fmtRatio(r: number | null): string {
+	if (r === null || r === undefined) return '∞'; // null means no downside risk — infinite ratio
 	if (r === Infinity) return '∞';
 	if (r === -Infinity) return '-∞';
 	return r.toFixed(2);

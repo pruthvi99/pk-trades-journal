@@ -16,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 	const { id } = await params;
 	const strategy = getStrategy(id);
-	if (!strategy || (strategy.userId && strategy.userId !== userId)) {
+	if (!strategy || strategy.userId !== userId) {
 		return NextResponse.json({ error: 'Strategy not found' }, { status: 404 });
 	}
 	return NextResponse.json(strategy);
@@ -31,7 +31,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 		const { id } = await params;
 		const strategy = getStrategy(id);
-		if (!strategy || (strategy.userId && strategy.userId !== userId)) {
+		if (!strategy || strategy.userId !== userId) {
 			return NextResponse.json({ error: 'Strategy not found' }, { status: 404 });
 		}
 

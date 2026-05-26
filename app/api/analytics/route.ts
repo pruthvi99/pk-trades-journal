@@ -2,7 +2,7 @@
  * GET /api/analytics — deep-dive analytics data for pattern identification (scoped to user).
  */
 
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { getUserIdFromRequest } from '@/lib/auth';
 import { getDb } from '@/lib/db/client';
@@ -50,7 +50,11 @@ export async function GET(request: Request) {
 	const allTrades = db.select().from(trades).where(eq(trades.userId, userId)).all();
 	const allStrategies = db.select().from(strategies).where(eq(strategies.userId, userId)).all();
 	const allTags = db.select().from(tags).where(eq(tags.userId, userId)).all();
-	const allTradeTags = db.select().from(tradeTags).all();
+	const userTradeIds = allTrades.map((t) => t.id);
+	const allTradeTags =
+		userTradeIds.length > 0
+			? db.select().from(tradeTags).where(inArray(tradeTags.tradeId, userTradeIds)).all()
+			: [];
 
 	const { searchParams } = new URL(request.url);
 	const userSettingsData = getUserSettings(userId);
@@ -62,11 +66,9 @@ export async function GET(request: Request) {
 	const tagLabels = new Map(allTags.map((t) => [t.id, t.label]));
 	const _strategyNames = new Map(allStrategies.map((s) => [s.id, s.name]));
 
-	// Build tagIds per trade (only for user's trades)
-	const userTradeIds = new Set(allTrades.map((t) => t.id));
+	// Build tagIds per trade
 	const tradeTagMap = new Map<string, string[]>();
 	for (const tt of allTradeTags) {
-		if (!userTradeIds.has(tt.tradeId)) continue;
 		const existing = tradeTagMap.get(tt.tradeId);
 		if (existing) existing.push(tt.tagId);
 		else tradeTagMap.set(tt.tradeId, [tt.tagId]);
@@ -99,7 +101,7 @@ export async function GET(request: Request) {
 		advancedRisk: {
 			sharpeRatio: sharpeRatio(allTrades),
 			sortinoRatio: sortinoRatio(allTrades),
-			calmarRatio: calmarRatio(totalPnl, dd.maxDrawdownUsd),
+			calmarRatio: calmarRatio(allTrades, totalPnl, dd.maxDrawdownUsd),
 			recoveryFactor: recoveryFactor(totalPnl, dd.maxDrawdownUsd),
 			underwaterCurve: underwaterCurve(allTrades, startingBalance),
 			feeImpact: feeImpact(allTrades),

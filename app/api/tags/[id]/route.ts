@@ -16,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 	const { id } = await params;
 	const tag = getTag(id);
-	if (!tag || (tag.userId && tag.userId !== userId)) {
+	if (!tag || tag.userId !== userId) {
 		return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
 	}
 	return NextResponse.json(tag);
@@ -31,7 +31,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 		const { id } = await params;
 		const tag = getTag(id);
-		if (!tag || (tag.userId && tag.userId !== userId)) {
+		if (!tag || tag.userId !== userId) {
 			return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
 		}
 

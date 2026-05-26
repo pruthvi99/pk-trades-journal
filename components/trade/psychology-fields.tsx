@@ -5,6 +5,7 @@
 
 'use client';
 
+import { type ChipOption, ChipSelect } from '@/components/primitives/chip-select';
 import { Input } from '@/components/primitives/input';
 import {
 	Select,
@@ -28,12 +29,22 @@ export interface PrePsychologyData {
 interface PrePsychologyFieldsProps {
 	data: PrePsychologyData;
 	onChange: (data: PrePsychologyData) => void;
+	/** Optional psychology chip tags for quick-select. */
+	psychologyTags?: ChipOption[];
+	selectedPsychologyTagIds?: string[];
+	onPsychologyTagsChange?: (ids: string[]) => void;
 }
 
 const MOODS = ['calm', 'focused', 'neutral', 'anxious', 'fomo', 'revenge', 'tired'] as const;
 
 /** Pre-trade psychology form fields. */
-export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps) {
+export function PrePsychologyFields({
+	data,
+	onChange,
+	psychologyTags,
+	selectedPsychologyTagIds,
+	onPsychologyTagsChange,
+}: PrePsychologyFieldsProps) {
 	const update = (field: string, value: unknown) => {
 		onChange({ ...data, [field]: value });
 	};
@@ -41,6 +52,18 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 	return (
 		<div className="space-y-4">
 			<p className="eyebrow">Pre-trade psychology</p>
+
+			{/* Psychology quick-select chips */}
+			{psychologyTags && psychologyTags.length > 0 && onPsychologyTagsChange && (
+				<div className="space-y-2">
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim block">Mindset</label>
+					<ChipSelect
+						options={psychologyTags}
+						selected={selectedPsychologyTagIds ?? []}
+						onChange={onPsychologyTagsChange}
+					/>
+				</div>
+			)}
 
 			{/* Confidence slider */}
 			<div className="space-y-2">
@@ -114,7 +137,7 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 					<div className="flex items-center gap-3 h-11 sm:h-8">
 						<Toggle
 							checked={data.preCaffeine ?? false}
-							onCheckedChange={(v) => update('preCaffeine', v || undefined)}
+							onCheckedChange={(v) => update('preCaffeine', v)}
 						/>
 						<span className="text-[14px] sm:text-[12px] text-pk-white-dim">
 							{data.preCaffeine ? 'Yes' : 'No'}
@@ -127,7 +150,7 @@ export function PrePsychologyFields({ data, onChange }: PrePsychologyFieldsProps
 			<div className="flex items-center gap-3">
 				<Toggle
 					checked={data.preFollowingPlan ?? false}
-					onCheckedChange={(v) => update('preFollowingPlan', v || undefined)}
+					onCheckedChange={(v) => update('preFollowingPlan', v)}
 				/>
 				<label className="text-[13px] text-pk-white-muted">Following the plan</label>
 			</div>
@@ -196,13 +219,25 @@ export interface PostPsychologyData {
 interface PostPsychologyFieldsProps {
 	data: PostPsychologyData;
 	onChange: (data: PostPsychologyData) => void;
+	/** Optional mistake chip tags for quick-select. */
+	mistakeTags?: ChipOption[];
+	selectedMistakeTagIds?: string[];
+	onMistakeTagsChange?: (ids: string[]) => void;
 }
 
 /** Post-trade psychology form fields. */
-export function PostPsychologyFields({ data, onChange }: PostPsychologyFieldsProps) {
+export function PostPsychologyFields({
+	data,
+	onChange,
+	mistakeTags,
+	selectedMistakeTagIds,
+	onMistakeTagsChange,
+}: PostPsychologyFieldsProps) {
 	const update = (field: string, value: unknown) => {
 		onChange({ ...data, [field]: value });
 	};
+
+	const hasMistakeChips = mistakeTags && mistakeTags.length > 0 && onMistakeTagsChange;
 
 	return (
 		<div className="space-y-4">
@@ -242,16 +277,36 @@ export function PostPsychologyFields({ data, onChange }: PostPsychologyFieldsPro
 					</SelectContent>
 				</Select>
 			</div>
-			<div>
-				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
-					Mistakes
-				</label>
-				<Input
-					placeholder="What went wrong?"
-					value={data.postMistakes ?? ''}
-					onChange={(e) => update('postMistakes', e.target.value || undefined)}
-				/>
-			</div>
+
+			{/* Mistake quick-select chips */}
+			{hasMistakeChips ? (
+				<div className="space-y-2">
+					<label className="text-[13px] sm:text-[11px] text-pk-white-dim block">Mistakes</label>
+					<ChipSelect
+						options={mistakeTags}
+						selected={selectedMistakeTagIds ?? []}
+						onChange={onMistakeTagsChange}
+						variant="mistake"
+					/>
+					<Input
+						placeholder="Additional notes…"
+						value={data.postMistakes ?? ''}
+						onChange={(e) => update('postMistakes', e.target.value || undefined)}
+					/>
+				</div>
+			) : (
+				<div>
+					<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+						Mistakes
+					</label>
+					<Input
+						placeholder="What went wrong?"
+						value={data.postMistakes ?? ''}
+						onChange={(e) => update('postMistakes', e.target.value || undefined)}
+					/>
+				</div>
+			)}
+
 			<div>
 				<label className="text-[13px] sm:text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 					Lessons
@@ -265,7 +320,7 @@ export function PostPsychologyFields({ data, onChange }: PostPsychologyFieldsPro
 			<div className="flex items-center gap-3">
 				<Toggle
 					checked={data.postWouldRetake ?? false}
-					onCheckedChange={(v) => update('postWouldRetake', v || undefined)}
+					onCheckedChange={(v) => update('postWouldRetake', v)}
 				/>
 				<label className="text-[13px] text-pk-white-muted">Would take this trade again</label>
 			</div>

@@ -33,7 +33,11 @@ export async function POST(request: Request) {
 		}
 		const tag = createTag({ ...parsed.data, userId });
 		return NextResponse.json(tag, { status: 201 });
-	} catch {
+	} catch (err) {
+		const message = err instanceof Error ? err.message : '';
+		if (message.includes('UNIQUE constraint')) {
+			return NextResponse.json({ error: 'A tag with this label already exists' }, { status: 409 });
+		}
 		return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 	}
 }

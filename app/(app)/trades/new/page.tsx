@@ -95,6 +95,8 @@ export default function NewTradePage() {
 	// Psychology
 	const [psychology, setPsychology] = useState<PrePsychologyData>({});
 	const [postPsychology, setPostPsychology] = useState<PostPsychologyData>({});
+	const [psychologyTagIds, setPsychologyTagIds] = useState<string[]>([]);
+	const [mistakeTagIds, setMistakeTagIds] = useState<string[]>([]);
 
 	// Live R:R calculation
 	const riskReward = (() => {
@@ -131,6 +133,10 @@ export default function NewTradePage() {
 		}
 	}, [instrument]);
 
+	// Derived chip tag lists from loaded tags
+	const psychologyChipTags = tagsList.filter((t) => t.category === 'psychology');
+	const mistakeChipTags = tagsList.filter((t) => t.category === 'mistake');
+
 	const handleCreateTag = async (label: string): Promise<TagOption | null> => {
 		const res = await fetch('/api/tags', {
 			method: 'POST',
@@ -163,6 +169,9 @@ export default function NewTradePage() {
 
 		try {
 			// Step 1: Create trade (always starts as open with entry execution)
+			// Merge all tag selections: reasoning tags + psychology chips + mistake chips
+			const allTagIds = [...new Set([...tagIds, ...psychologyTagIds, ...mistakeTagIds])];
+
 			const payload = {
 				symbol,
 				instrument,
@@ -177,7 +186,7 @@ export default function NewTradePage() {
 				notesMd: notesMd || undefined,
 				tradeQuality: tradeQuality || undefined,
 				tradeBasis: tradeBasis || undefined,
-				tagIds: tagIds.length > 0 ? tagIds : undefined,
+				tagIds: allTagIds.length > 0 ? allTagIds : undefined,
 				screenshots: screenshots.length > 0 ? screenshots : undefined,
 				...psychology,
 				execution: {
@@ -579,7 +588,13 @@ export default function NewTradePage() {
 
 			{/* Section 6: Psychology */}
 			<section>
-				<PrePsychologyFields data={psychology} onChange={(data) => setPsychology(data)} />
+				<PrePsychologyFields
+					data={psychology}
+					onChange={(data) => setPsychology(data)}
+					psychologyTags={psychologyChipTags}
+					selectedPsychologyTagIds={psychologyTagIds}
+					onPsychologyTagsChange={setPsychologyTagIds}
+				/>
 			</section>
 
 			{/* Section 7: Post-trade psychology — only when closing */}
@@ -588,6 +603,9 @@ export default function NewTradePage() {
 					<PostPsychologyFields
 						data={postPsychology}
 						onChange={(data) => setPostPsychology(data)}
+						mistakeTags={mistakeChipTags}
+						selectedMistakeTagIds={mistakeTagIds}
+						onMistakeTagsChange={setMistakeTagIds}
 					/>
 				</section>
 			)}

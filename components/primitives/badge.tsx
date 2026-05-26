@@ -7,7 +7,7 @@ import type { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-	variant?: 'default' | 'win' | 'loss' | 'open' | 'muted';
+	variant?: 'default' | 'win' | 'loss' | 'open' | 'muted' | 'mistake';
 }
 
 export function Badge({ className, variant = 'default', ...props }: BadgeProps) {
@@ -20,6 +20,7 @@ export function Badge({ className, variant = 'default', ...props }: BadgeProps) 
 				variant === 'loss' && 'bg-pk-purple-faint text-pk-purple',
 				variant === 'open' && 'border border-pk-border text-pk-white-muted',
 				variant === 'muted' && 'bg-pk-black-sunken text-pk-white-dim',
+				variant === 'mistake' && 'bg-red-500/10 text-red-400',
 				className,
 			)}
 			{...props}

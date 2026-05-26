@@ -22,6 +22,20 @@
       "when": 1779840000000,
       "tag": "0002_multi_user",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1779926400000,
+      "tag": "0003_chip_select_tags",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1748131200000,
+      "tag": "0004_strategies_unique_per_user",
+      "breakpoints": true
     }
   ]
 }
