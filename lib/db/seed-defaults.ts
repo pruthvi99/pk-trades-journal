@@ -6,7 +6,7 @@
 import { eq } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
 import { nowUtc } from '../time';
-import { getDb } from './client';
+import { getDb, getSqlite } from './client';
 import { tags } from './schema';
 
 /** Default tags grouped by category. */
@@ -36,10 +36,12 @@ const DEFAULT_TAGS: Record<string, string[]> = {
 
 /**
  * Insert default tags for a user. Skips if user already has tags.
- * Safe to call multiple times — checks existing count first.
+ * Uses INSERT OR IGNORE to tolerate constraint violations gracefully.
+ * Safe to call multiple times — idempotent.
  */
 export function seedDefaultTags(userId: string): void {
 	const db = getDb();
+	const sqlite = getSqlite();
 
 	// Skip if user already has tags
 	const existing = db.select().from(tags).where(eq(tags.userId, userId)).all();
@@ -47,18 +49,16 @@ export function seedDefaultTags(userId: string): void {
 
 	const now = nowUtc();
 
+	// Use raw INSERT OR IGNORE to survive any lingering unique constraint issues.
+	// Drizzle's .onConflictDoNothing() generates different SQL across dialects —
+	// raw SQL is more predictable for this critical path.
+	const stmt = sqlite.prepare(
+		'INSERT OR IGNORE INTO tags (id, user_id, label, category, archived, created_at) VALUES (?, ?, ?, ?, 0, ?)',
+	);
+
 	for (const [category, labels] of Object.entries(DEFAULT_TAGS)) {
 		for (const label of labels) {
-			db.insert(tags)
-				.values({
-					id: uuid(),
-					userId,
-					label,
-					category: category as 'mistake' | 'setup' | 'context' | 'psychology',
-					archived: false,
-					createdAt: now,
-				})
-				.run();
+			stmt.run(uuid(), userId, label, category, now);
 		}
 	}
 }

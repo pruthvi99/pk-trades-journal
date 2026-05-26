@@ -7,7 +7,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { v4 as uuid } from 'uuid';
-import { getDb } from './db/client';
+import { getDb, getSqlite } from './db/client';
 import { type User, users } from './db/schema';
 import { seedDefaultTags } from './db/seed-defaults';
 import { nowUtc } from './time';
@@ -85,20 +85,27 @@ export function isPasscodeAvailable(passcode: string): boolean {
 /** Create a new user with the given passcode. */
 export function createUser(passcode: string, displayName?: string): User {
 	const db = getDb();
+	const sqlite = getSqlite();
 	const id = uuid();
 	const now = nowUtc();
-	db.insert(users)
-		.values({
-			id,
-			passcode,
-			displayName: displayName ?? null,
-			isAdmin: false,
-			createdAt: now,
-		})
-		.run();
 
-	// Seed default tags (mistake, setup, context, psychology) for the new user
-	seedDefaultTags(id);
+	// Atomic: user + default tags in one transaction.
+	// If seedDefaultTags fails, user creation is rolled back — prevents orphan users
+	// that cause "passcode already in use" on retry with no way to recover.
+	const createUserTxn = sqlite.transaction(() => {
+		db.insert(users)
+			.values({
+				id,
+				passcode,
+				displayName: displayName ?? null,
+				isAdmin: false,
+				createdAt: now,
+			})
+			.run();
+
+		seedDefaultTags(id);
+	});
+	createUserTxn();
 
 	return db.select().from(users).where(eq(users.id, id)).get()!;
 }

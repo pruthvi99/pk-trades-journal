@@ -24,7 +24,8 @@ export function createSqliteConnection(path: string = DATABASE_PATH): Database.D
 /** Singleton connection — reused across the process lifetime. */
 let _sqlite: Database.Database | null = null;
 
-function getSqlite(): Database.Database {
+/** Get the singleton raw better-sqlite3 connection (lazy-init). */
+export function getSqlite(): Database.Database {
 	if (!_sqlite) {
 		_sqlite = createSqliteConnection();
 	}

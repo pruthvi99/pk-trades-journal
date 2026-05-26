@@ -4,12 +4,23 @@
  * Exits non-zero on failure so Render rolls back.
  */
 
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { createSqliteConnection } from './client';
 import * as schema from './schema';
 import { seedDefaultTags } from './seed-defaults';
+
+// tsx doesn't auto-load .env like Next.js does — load it manually so
+// DATABASE_PATH is read from .env in production (e.g. /var/data/pk_trades.db).
+const dotenvPath = resolve(process.cwd(), '.env');
+if (existsSync(dotenvPath)) {
+	for (const line of readFileSync(dotenvPath, 'utf-8').split('\n')) {
+		const m = line.match(/^\s*([^#=]+?)\s*=\s*(.*?)\s*$/);
+		if (m?.[1] && m[2] !== undefined && !process.env[m[1]]) process.env[m[1]] = m[2];
+	}
+}
 
 const DATABASE_PATH = process.env.DATABASE_PATH || './data/pk_trades.db';
 
