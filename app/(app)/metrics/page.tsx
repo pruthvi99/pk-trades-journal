@@ -27,26 +27,26 @@ interface MetricsData {
 		closedTrades: number;
 	};
 	headline: {
-		totalPnlUsd: number;
-		totalPnlPercent: number;
-		winRate: number;
-		profitFactor: number;
-		expectancyUsd: number;
-		expectancyR: number;
-		averageR: number;
-		medianR: number;
-		avgWinUsd: number;
-		avgLossUsd: number;
-		payoffRatio: number;
-		bestTradeUsd: number;
-		worstTradeUsd: number;
-		kellyCriterion: number;
+		totalPnlUsd: number | null;
+		totalPnlPercent: number | null;
+		winRate: number | null;
+		profitFactor: number | null;
+		expectancyUsd: number | null;
+		expectancyR: number | null;
+		averageR: number | null;
+		medianR: number | null;
+		avgWinUsd: number | null;
+		avgLossUsd: number | null;
+		payoffRatio: number | null;
+		bestTradeUsd: number | null;
+		worstTradeUsd: number | null;
+		kellyCriterion: number | null;
 		winCount: number;
 		lossCount: number;
 		breakEvenCount: number;
-		grossProfit: number;
-		grossLoss: number;
-		pnlStdDev: number;
+		grossProfit: number | null;
+		grossLoss: number | null;
+		pnlStdDev: number | null;
 	};
 	distribution: {
 		equityCurve: Array<{
@@ -56,9 +56,9 @@ interface MetricsData {
 			equity: number;
 		}>;
 		maxDrawdown: {
-			maxDrawdownUsd: number;
-			maxDrawdownPercent: number;
-			longestDrawdownDays: number;
+			maxDrawdownUsd: number | null;
+			maxDrawdownPercent: number | null;
+			longestDrawdownDays: number | null;
 		};
 		streaks: {
 			currentStreak: number;
@@ -77,21 +77,38 @@ interface MetricsData {
 		byBasis: EdgeRow[];
 	};
 	risk: {
-		avgRiskUsd: number;
-		avgRiskPercent: number;
-		largestLossUsd: number;
-		riskAdjustedReturn: number;
-		planAdherenceRate: number;
+		avgRiskUsd: number | null;
+		avgRiskPercent: number | null;
+		largestLossUsd: number | null;
+		riskAdjustedReturn: number | null;
+		planAdherenceRate: number | null;
 	};
 	psychology: {
-		confidenceByOutcome: { winnersAvg: number; losersAvg: number };
+		confidenceByOutcome: { winnersAvg: number | null; losersAvg: number | null };
 		winRateByMood: Array<{ mood: string; trades: number; winPercent: number }>;
 		winRateBySleep: {
 			underSixHours: { trades: number; winPercent: number };
 			sixPlusHours: { trades: number; winPercent: number };
 		};
-		wouldRetakeRate: number;
+		wouldRetakeRate: number | null;
 	};
+}
+
+/** Null-safe number formatter. Returns fallback for null/undefined/NaN/Infinity. */
+function fmt(value: number | null | undefined, decimals = 2, fallback = '—'): string {
+	if (value == null || !Number.isFinite(value)) return fallback;
+	return value.toFixed(decimals);
+}
+
+/** Safe >= comparison: treat null as 0. */
+function gte(value: number | null | undefined, threshold: number): boolean {
+	return (value ?? 0) >= threshold;
+}
+
+/** Safe sign prefix for display. */
+function signed(value: number | null | undefined, decimals = 2): string {
+	if (value == null || !Number.isFinite(value)) return '—';
+	return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}`;
 }
 
 export default function MetricsPage() {
@@ -146,7 +163,7 @@ export default function MetricsPage() {
 	}
 
 	const { summary, headline, distribution, edge, risk, psychology } = data;
-	const pnlVariant = headline.totalPnlUsd >= 0 ? 'win' : 'loss';
+	const pnlVariant = gte(headline.totalPnlUsd, 0) ? 'win' : 'loss';
 
 	return (
 		<div className="space-y-8">
@@ -164,51 +181,55 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 					<StatCard
 						label="Total P&L"
-						value={`${headline.totalPnlUsd >= 0 ? '+' : ''}$${headline.totalPnlUsd.toFixed(2)}`}
-						suffix={`(${headline.totalPnlPercent >= 0 ? '+' : ''}${headline.totalPnlPercent.toFixed(1)}%)`}
+						value={`${signed(headline.totalPnlUsd)}$${fmt(headline.totalPnlUsd != null ? Math.abs(headline.totalPnlUsd) : null)}`}
+						suffix={`(${signed(headline.totalPnlPercent, 1)}%)`}
 						variant={pnlVariant}
 					/>
 					<StatCard
 						label="Win Rate"
-						value={`${headline.winRate.toFixed(1)}%`}
-						variant={headline.winRate >= 50 ? 'win' : 'loss'}
+						value={`${fmt(headline.winRate, 1)}%`}
+						variant={gte(headline.winRate, 50) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Profit Factor"
-						value={
-							headline.profitFactor === Number.POSITIVE_INFINITY
-								? '∞'
-								: headline.profitFactor.toFixed(2)
-						}
-						variant={headline.profitFactor >= 1 ? 'win' : 'loss'}
+						value={headline.profitFactor == null ? '∞' : fmt(headline.profitFactor)}
+						variant={gte(headline.profitFactor, 1) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Expectancy"
-						value={`${headline.expectancyUsd >= 0 ? '+' : ''}$${headline.expectancyUsd.toFixed(2)}`}
-						suffix={`(${headline.expectancyR >= 0 ? '+' : ''}${headline.expectancyR.toFixed(2)}R)`}
-						variant={headline.expectancyUsd >= 0 ? 'win' : 'loss'}
+						value={`${signed(headline.expectancyUsd)}$${fmt(headline.expectancyUsd != null ? Math.abs(headline.expectancyUsd) : null)}`}
+						suffix={headline.expectancyR != null ? `(${signed(headline.expectancyR)}R)` : undefined}
+						variant={gte(headline.expectancyUsd, 0) ? 'win' : 'loss'}
 					/>
 				</div>
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
 					<StatCard
 						label="Avg R"
-						value={`${headline.averageR >= 0 ? '+' : ''}${headline.averageR.toFixed(2)}R`}
-						variant={headline.averageR >= 0 ? 'win' : 'loss'}
+						value={headline.averageR != null ? `${signed(headline.averageR)}R` : '—'}
+						variant={gte(headline.averageR, 0) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Median R"
-						value={`${headline.medianR >= 0 ? '+' : ''}${headline.medianR.toFixed(2)}R`}
-						variant={headline.medianR >= 0 ? 'win' : 'loss'}
+						value={headline.medianR != null ? `${signed(headline.medianR)}R` : '—'}
+						variant={gte(headline.medianR, 0) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Max Drawdown"
-						value={`-$${distribution.maxDrawdown.maxDrawdownUsd.toFixed(2)}`}
-						suffix={`(-${distribution.maxDrawdown.maxDrawdownPercent.toFixed(1)}%)`}
+						value={
+							distribution.maxDrawdown.maxDrawdownUsd != null
+								? `-$${fmt(distribution.maxDrawdown.maxDrawdownUsd)}`
+								: '—'
+						}
+						suffix={
+							distribution.maxDrawdown.maxDrawdownPercent != null
+								? `(-${fmt(distribution.maxDrawdown.maxDrawdownPercent, 1)}%)`
+								: undefined
+						}
 						variant="loss"
 					/>
 					<StatCard
 						label="DD Duration"
-						value={`${distribution.maxDrawdown.longestDrawdownDays}`}
+						value={`${distribution.maxDrawdown.longestDrawdownDays ?? '—'}`}
 						suffix="days"
 						variant="neutral"
 					/>
@@ -216,23 +237,27 @@ export default function MetricsPage() {
 
 				{/* Win/Loss Breakdown */}
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-					<StatCard label="Avg Win" value={`+$${headline.avgWinUsd.toFixed(2)}`} variant="win" />
+					<StatCard
+						label="Avg Win"
+						value={headline.avgWinUsd != null ? `+$${fmt(headline.avgWinUsd)}` : '—'}
+						variant="win"
+					/>
 					<StatCard
 						label="Avg Loss"
-						value={`-$${Math.abs(headline.avgLossUsd).toFixed(2)}`}
+						value={headline.avgLossUsd != null ? `-$${fmt(Math.abs(headline.avgLossUsd))}` : '—'}
 						variant="loss"
 					/>
 					<StatCard
 						label="Payoff Ratio"
-						value={headline.payoffRatio === Infinity ? '∞' : headline.payoffRatio.toFixed(2)}
+						value={headline.payoffRatio == null ? '∞' : fmt(headline.payoffRatio)}
 						suffix="(W/L ratio)"
-						variant={headline.payoffRatio >= 1 ? 'win' : 'loss'}
+						variant={gte(headline.payoffRatio, 1) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Kelly %"
-						value={`${headline.kellyCriterion.toFixed(1)}%`}
+						value={headline.kellyCriterion != null ? `${fmt(headline.kellyCriterion, 1)}%` : '—'}
 						suffix="optimal size"
-						variant={headline.kellyCriterion > 0 ? 'win' : 'loss'}
+						variant={gte(headline.kellyCriterion, 0) ? 'win' : 'loss'}
 					/>
 				</div>
 
@@ -240,17 +265,19 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
 					<StatCard
 						label="Best Trade"
-						value={`+$${headline.bestTradeUsd.toFixed(2)}`}
+						value={headline.bestTradeUsd != null ? `+$${fmt(headline.bestTradeUsd)}` : '—'}
 						variant="win"
 					/>
 					<StatCard
 						label="Worst Trade"
-						value={`-$${Math.abs(headline.worstTradeUsd).toFixed(2)}`}
+						value={
+							headline.worstTradeUsd != null ? `-$${fmt(Math.abs(headline.worstTradeUsd))}` : '—'
+						}
 						variant="loss"
 					/>
 					<StatCard
 						label="P&L Std Dev"
-						value={`$${headline.pnlStdDev.toFixed(2)}`}
+						value={headline.pnlStdDev != null ? `$${fmt(headline.pnlStdDev)}` : '—'}
 						variant="neutral"
 					/>
 					<div className="rounded-[6px] border border-pk-border bg-pk-black-raised px-4 py-3">
@@ -269,24 +296,24 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
 					<StatCard
 						label="Gross Profit"
-						value={`+$${headline.grossProfit.toFixed(2)}`}
+						value={headline.grossProfit != null ? `+$${fmt(headline.grossProfit)}` : '—'}
 						variant="win"
 					/>
 					<StatCard
 						label="Gross Loss"
-						value={`-$${headline.grossLoss.toFixed(2)}`}
+						value={headline.grossLoss != null ? `-$${fmt(headline.grossLoss)}` : '—'}
 						variant="loss"
 					/>
 					<StatCard
 						label="Net P&L"
-						value={`${headline.totalPnlUsd >= 0 ? '+' : ''}$${headline.totalPnlUsd.toFixed(2)}`}
+						value={`${signed(headline.totalPnlUsd)}$${fmt(headline.totalPnlUsd != null ? Math.abs(headline.totalPnlUsd) : null)}`}
 						variant={pnlVariant}
 					/>
 					<StatCard
 						label="Profit Factor"
-						value={headline.profitFactor === Infinity ? '∞' : headline.profitFactor.toFixed(2)}
+						value={headline.profitFactor == null ? '∞' : fmt(headline.profitFactor)}
 						suffix="(gross W / L)"
-						variant={headline.profitFactor >= 1 ? 'win' : 'loss'}
+						variant={gte(headline.profitFactor, 1) ? 'win' : 'loss'}
 					/>
 				</div>
 			</section>
@@ -366,28 +393,28 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 					<StatCard
 						label="Avg Risk"
-						value={`$${risk.avgRiskUsd.toFixed(2)}`}
-						suffix={`(${risk.avgRiskPercent.toFixed(1)}%)`}
+						value={risk.avgRiskUsd != null ? `$${fmt(risk.avgRiskUsd)}` : '—'}
+						suffix={risk.avgRiskPercent != null ? `(${fmt(risk.avgRiskPercent, 1)}%)` : undefined}
 						variant="neutral"
 					/>
 					<StatCard
 						label="Largest Loss"
-						value={`${risk.largestLossUsd < 0 ? '-' : ''}$${Math.abs(risk.largestLossUsd).toFixed(2)}`}
+						value={
+							risk.largestLossUsd != null
+								? `${(risk.largestLossUsd ?? 0) < 0 ? '-' : ''}$${fmt(Math.abs(risk.largestLossUsd ?? 0))}`
+								: '—'
+						}
 						variant="loss"
 					/>
 					<StatCard
 						label="Risk-Adj Return"
-						value={
-							risk.riskAdjustedReturn === Number.POSITIVE_INFINITY
-								? '∞'
-								: risk.riskAdjustedReturn.toFixed(2)
-						}
-						variant={risk.riskAdjustedReturn >= 1 ? 'win' : 'loss'}
+						value={risk.riskAdjustedReturn == null ? '∞' : fmt(risk.riskAdjustedReturn)}
+						variant={gte(risk.riskAdjustedReturn, 1) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Plan Adherence"
-						value={`${risk.planAdherenceRate.toFixed(0)}%`}
-						variant={risk.planAdherenceRate >= 80 ? 'win' : 'neutral'}
+						value={risk.planAdherenceRate != null ? `${fmt(risk.planAdherenceRate, 0)}%` : '—'}
+						variant={gte(risk.planAdherenceRate, 80) ? 'win' : 'neutral'}
 					/>
 				</div>
 			</section>
@@ -400,20 +427,30 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
 					<StatCard
 						label="Confidence → Wins"
-						value={psychology.confidenceByOutcome.winnersAvg.toFixed(1)}
+						value={
+							psychology.confidenceByOutcome.winnersAvg != null
+								? fmt(psychology.confidenceByOutcome.winnersAvg, 1)
+								: '—'
+						}
 						suffix="/ 10"
 						variant="win"
 					/>
 					<StatCard
 						label="Confidence → Losses"
-						value={psychology.confidenceByOutcome.losersAvg.toFixed(1)}
+						value={
+							psychology.confidenceByOutcome.losersAvg != null
+								? fmt(psychology.confidenceByOutcome.losersAvg, 1)
+								: '—'
+						}
 						suffix="/ 10"
 						variant="loss"
 					/>
 					<StatCard
 						label="Would Retake"
-						value={`${psychology.wouldRetakeRate.toFixed(0)}%`}
-						variant={psychology.wouldRetakeRate >= 70 ? 'win' : 'neutral'}
+						value={
+							psychology.wouldRetakeRate != null ? `${fmt(psychology.wouldRetakeRate, 0)}%` : '—'
+						}
+						variant={gte(psychology.wouldRetakeRate, 70) ? 'win' : 'neutral'}
 					/>
 					<div className="rounded-[6px] border border-pk-border bg-pk-black-raised px-4 py-3">
 						<p className="text-[12px] sm:text-[11px] text-pk-white-dim font-medium uppercase tracking-wider">
