@@ -74,8 +74,8 @@ export default function SignupPage() {
 				return;
 			}
 
-			// Redirect to login with success indicator
-			router.push('/login?registered=true');
+			// Auto-logged in — go straight to dashboard
+			router.push('/dashboard');
 		} catch {
 			setError('Network error');
 		} finally {

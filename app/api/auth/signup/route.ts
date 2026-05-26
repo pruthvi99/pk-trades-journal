@@ -4,7 +4,14 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createUser, isPasscodeAvailable, validatePasscode } from '@/lib/auth';
+import {
+	createSessionToken,
+	createUser,
+	isPasscodeAvailable,
+	SESSION_COOKIE_NAME,
+	SESSION_MAX_AGE,
+	validatePasscode,
+} from '@/lib/auth';
 
 export async function POST(request: Request) {
 	try {
@@ -31,14 +38,18 @@ export async function POST(request: Request) {
 		// Create the user
 		const user = createUser(body.passcode, body.displayName);
 
-		return NextResponse.json(
-			{
-				ok: true,
-				message: 'Account created successfully! You can now sign in with your passcode.',
-				userId: user.id,
-			},
-			{ status: 201 },
-		);
+		// Auto-login: set session cookie so user lands on dashboard immediately
+		const token = await createSessionToken(user.id);
+		const response = NextResponse.json({ ok: true, userId: user.id }, { status: 201 });
+		response.cookies.set(SESSION_COOKIE_NAME, token, {
+			httpOnly: true,
+			secure: process.env.SECURE_COOKIES === 'true',
+			sameSite: 'lax',
+			path: '/',
+			maxAge: SESSION_MAX_AGE,
+		});
+
+		return response;
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Internal server error';
 		return NextResponse.json({ error: message }, { status: 500 });
