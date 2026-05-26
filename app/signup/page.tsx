@@ -1,7 +1,7 @@
 /**
  * Sign-up page — create account with a 6-digit passcode.
  * Validates format, blocks easy patterns, checks uniqueness.
- * On success, redirects to /login with a success message.
+ * On success, auto-logs in and redirects to /journal.
  */
 
 'use client';
@@ -74,8 +74,8 @@ export default function SignupPage() {
 				return;
 			}
 
-			// Auto-logged in — go straight to dashboard
-			router.push('/dashboard');
+			// Auto-logged in — go straight to journal
+			router.push('/journal');
 		} catch {
 			setError('Network error');
 		} finally {
