@@ -57,13 +57,6 @@ export default function NewTradePage() {
 		return now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
 	});
 
-	// Plan
-	const [plannedEntry, setPlannedEntry] = useState('');
-	const [plannedStop, setPlannedStop] = useState('');
-	const [plannedTarget, setPlannedTarget] = useState('');
-	const [plannedSize, setPlannedSize] = useState('');
-	const [plannedRiskUsd, setPlannedRiskUsd] = useState('');
-
 	// Status
 	const [status, setStatus] = useState<'open' | 'closed'>('closed');
 	const [closedAt, setClosedAt] = useState(() => {
@@ -97,17 +90,6 @@ export default function NewTradePage() {
 	const [postPsychology, setPostPsychology] = useState<PostPsychologyData>({});
 	const [psychologyTagIds, setPsychologyTagIds] = useState<string[]>([]);
 	const [mistakeTagIds, setMistakeTagIds] = useState<string[]>([]);
-
-	// Live R:R calculation
-	const riskReward = (() => {
-		const entry = Number(plannedEntry);
-		const stop = Number(plannedStop);
-		const target = Number(plannedTarget);
-		if (!entry || !stop || !target || entry === stop) return null;
-		const risk = Math.abs(entry - stop);
-		const reward = Math.abs(target - entry);
-		return (reward / risk).toFixed(2);
-	})();
 
 	// Load reference data
 	useEffect(() => {
@@ -178,11 +160,6 @@ export default function NewTradePage() {
 				direction,
 				strategyId: strategyId || undefined,
 				openedAt: new Date(openedAt).toISOString(),
-				plannedEntry: plannedEntry ? Number(plannedEntry) : undefined,
-				plannedStop: plannedStop ? Number(plannedStop) : undefined,
-				plannedTarget: plannedTarget ? Number(plannedTarget) : undefined,
-				plannedSize: plannedSize ? Number(plannedSize) : undefined,
-				plannedRiskUsd: plannedRiskUsd ? Number(plannedRiskUsd) : undefined,
 				notesMd: notesMd || undefined,
 				tradeQuality: tradeQuality || undefined,
 				tradeBasis: tradeBasis || undefined,
@@ -374,79 +351,7 @@ export default function NewTradePage() {
 				)}
 			</section>
 
-			{/* Section 2: Plan */}
-			<section className="space-y-4">
-				<div className="flex items-center justify-between">
-					<p className="eyebrow">Plan</p>
-					{riskReward && (
-						<span className="text-[13px] font-mono tabular-nums text-pk-purple-bright">
-							R:R {riskReward}
-						</span>
-					)}
-				</div>
-				<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Entry</label>
-						<Input
-							numeric
-							type="number"
-							step="0.01"
-							placeholder="0.00"
-							value={plannedEntry}
-							onChange={(e) => setPlannedEntry(e.target.value)}
-						/>
-					</div>
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Stop</label>
-						<Input
-							numeric
-							type="number"
-							step="0.01"
-							placeholder="0.00"
-							value={plannedStop}
-							onChange={(e) => setPlannedStop(e.target.value)}
-						/>
-					</div>
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
-							Target
-						</label>
-						<Input
-							numeric
-							type="number"
-							step="0.01"
-							placeholder="0.00"
-							value={plannedTarget}
-							onChange={(e) => setPlannedTarget(e.target.value)}
-						/>
-					</div>
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Size</label>
-						<Input
-							numeric
-							type="number"
-							placeholder="1"
-							value={plannedSize}
-							onChange={(e) => setPlannedSize(e.target.value)}
-						/>
-					</div>
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
-							Risk ($)
-						</label>
-						<Input
-							numeric
-							type="number"
-							step="0.01"
-							placeholder="0.00"
-							value={plannedRiskUsd}
-							onChange={(e) => setPlannedRiskUsd(e.target.value)}
-						/>
-					</div>
-				</div>
-			</section>
-
-			{/* Section 3: Trade Classification */}
+			{/* Section 2: Trade Classification */}
 			<section className="space-y-4">
 				<p className="eyebrow">Trade classification</p>
 				<div className="grid grid-cols-2 gap-3">

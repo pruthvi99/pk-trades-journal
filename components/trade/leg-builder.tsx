@@ -56,52 +56,76 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 	};
 
 	if (instrument === 'stock') {
-		const leg = legs[0] ?? emptyStockLeg();
 		return (
 			<div className="space-y-3">
-				<p className="eyebrow">Stock execution</p>
-				<div className="grid grid-cols-3 gap-3">
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Side</label>
-						<Select
-							value={leg.side}
-							onValueChange={(v) => onChange([{ ...leg, side: v as 'buy' | 'sell' }])}
-						>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="buy">Buy</SelectItem>
-								<SelectItem value="sell">Sell</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
-							Shares
-						</label>
-						<Input
-							numeric
-							type="number"
-							placeholder="100"
-							value={leg.shares ?? ''}
-							onChange={(e) =>
-								updateLeg(0, 'shares', e.target.value ? Number(e.target.value) : undefined)
-							}
-						/>
-					</div>
-					<div>
-						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">Price</label>
-						<Input
-							numeric
-							type="number"
-							step="0.01"
-							placeholder="0.00"
-							value={leg.price || ''}
-							onChange={(e) => updateLeg(0, 'price', Number(e.target.value))}
-						/>
-					</div>
+				<div className="flex items-center justify-between">
+					<p className="eyebrow">Stock execution</p>
+					<Button variant="ghost" size="small" type="button" onClick={addLeg}>
+						+ Add leg
+					</Button>
 				</div>
+				{legs.map((leg, i) => (
+					<div
+						key={`stock-leg-${i}`}
+						className={
+							legs.length > 1
+								? 'rounded-[6px] border border-pk-border bg-pk-black-sunken p-3 space-y-3'
+								: 'space-y-3'
+						}
+					>
+						{legs.length > 1 && (
+							<div className="flex items-center justify-between">
+								<span className="text-[14px] sm:text-[12px] text-pk-white-dim">Leg {i + 1}</span>
+								<Button variant="ghost" size="small" type="button" onClick={() => removeLeg(i)}>
+									Remove
+								</Button>
+							</div>
+						)}
+						<div className="grid grid-cols-3 gap-3">
+							<div>
+								<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Side
+								</label>
+								<Select value={leg.side} onValueChange={(v) => updateLeg(i, 'side', v)}>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="buy">Buy</SelectItem>
+										<SelectItem value="sell">Sell</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div>
+								<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Shares
+								</label>
+								<Input
+									numeric
+									type="number"
+									placeholder="100"
+									value={leg.shares ?? ''}
+									onChange={(e) =>
+										updateLeg(i, 'shares', e.target.value ? Number(e.target.value) : undefined)
+									}
+								/>
+							</div>
+							<div>
+								<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
+									Price
+								</label>
+								<Input
+									numeric
+									type="number"
+									step="0.01"
+									placeholder="0.00"
+									value={leg.price || ''}
+									onChange={(e) => updateLeg(i, 'price', Number(e.target.value))}
+								/>
+							</div>
+						</div>
+					</div>
+				))}
 			</div>
 		);
 	}
