@@ -6,6 +6,7 @@
 'use client';
 
 import { Button } from '@/components/primitives/button';
+import { DatePicker } from '@/components/primitives/datetime-picker';
 import { Input } from '@/components/primitives/input';
 import {
 	Select,
@@ -203,10 +204,10 @@ export function LegBuilder({ instrument, legs, onChange }: LegBuilderProps) {
 							<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 								Expiration
 							</label>
-							<Input
-								type="date"
+							<DatePicker
 								value={leg.expiration ?? ''}
-								onChange={(e) => updateLeg(i, 'expiration', e.target.value || undefined)}
+								onChange={(v) => updateLeg(i, 'expiration', v || undefined)}
+								placeholder="Exp date"
 							/>
 						</div>
 						<div>

@@ -8,6 +8,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/primitives/button';
+import { DateTimePicker } from '@/components/primitives/datetime-picker';
 import { Input } from '@/components/primitives/input';
 import {
 	Select,
@@ -367,22 +368,14 @@ export default function NewTradePage() {
 					<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 						Opened at
 					</label>
-					<Input
-						type="datetime-local"
-						value={openedAt}
-						onChange={(e) => setOpenedAt(e.target.value)}
-					/>
+					<DateTimePicker value={openedAt} onChange={setOpenedAt} />
 				</div>
 				{status === 'closed' && (
 					<div>
 						<label className="text-[13px] sm:text-[11px] text-pk-white-dim mb-1 block">
 							Closed at
 						</label>
-						<Input
-							type="datetime-local"
-							value={closedAt}
-							onChange={(e) => setClosedAt(e.target.value)}
-						/>
+						<DateTimePicker value={closedAt} onChange={setClosedAt} />
 					</div>
 				)}
 			</section>
