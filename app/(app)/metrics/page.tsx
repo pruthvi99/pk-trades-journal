@@ -181,8 +181,16 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 					<StatCard
 						label="Total P&L"
-						value={`${signed(headline.totalPnlUsd)}$${fmt(headline.totalPnlUsd != null ? Math.abs(headline.totalPnlUsd) : null)}`}
-						suffix={`(${signed(headline.totalPnlPercent, 1)}%)`}
+						value={
+							headline.totalPnlUsd != null
+								? `${headline.totalPnlUsd >= 0 ? '+' : '-'}$${fmt(Math.abs(headline.totalPnlUsd))}`
+								: '—'
+						}
+						suffix={
+							headline.totalPnlPercent != null
+								? `(${signed(headline.totalPnlPercent, 1)}%)`
+								: undefined
+						}
 						variant={pnlVariant}
 					/>
 					<StatCard
@@ -197,7 +205,11 @@ export default function MetricsPage() {
 					/>
 					<StatCard
 						label="Expectancy"
-						value={`${signed(headline.expectancyUsd)}$${fmt(headline.expectancyUsd != null ? Math.abs(headline.expectancyUsd) : null)}`}
+						value={
+							headline.expectancyUsd != null
+								? `${headline.expectancyUsd >= 0 ? '+' : '-'}$${fmt(Math.abs(headline.expectancyUsd))}`
+								: '—'
+						}
 						suffix={headline.expectancyR != null ? `(${signed(headline.expectancyR)}R)` : undefined}
 						variant={gte(headline.expectancyUsd, 0) ? 'win' : 'loss'}
 					/>
@@ -265,15 +277,21 @@ export default function MetricsPage() {
 				<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
 					<StatCard
 						label="Best Trade"
-						value={headline.bestTradeUsd != null ? `+$${fmt(headline.bestTradeUsd)}` : '—'}
-						variant="win"
+						value={
+							headline.bestTradeUsd != null
+								? `${headline.bestTradeUsd >= 0 ? '+' : '-'}$${fmt(Math.abs(headline.bestTradeUsd))}`
+								: '—'
+						}
+						variant={gte(headline.bestTradeUsd, 0) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="Worst Trade"
 						value={
-							headline.worstTradeUsd != null ? `-$${fmt(Math.abs(headline.worstTradeUsd))}` : '—'
+							headline.worstTradeUsd != null
+								? `${headline.worstTradeUsd >= 0 ? '+' : '-'}$${fmt(Math.abs(headline.worstTradeUsd))}`
+								: '—'
 						}
-						variant="loss"
+						variant={gte(headline.worstTradeUsd, 0) ? 'win' : 'loss'}
 					/>
 					<StatCard
 						label="P&L Std Dev"
@@ -306,7 +324,11 @@ export default function MetricsPage() {
 					/>
 					<StatCard
 						label="Net P&L"
-						value={`${signed(headline.totalPnlUsd)}$${fmt(headline.totalPnlUsd != null ? Math.abs(headline.totalPnlUsd) : null)}`}
+						value={
+							headline.totalPnlUsd != null
+								? `${headline.totalPnlUsd >= 0 ? '+' : '-'}$${fmt(Math.abs(headline.totalPnlUsd))}`
+								: '—'
+						}
 						variant={pnlVariant}
 					/>
 					<StatCard

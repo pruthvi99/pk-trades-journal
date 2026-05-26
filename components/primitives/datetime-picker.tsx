@@ -534,7 +534,6 @@ interface TimeScrollerProps {
 
 function TimeScroller({ value, max, min = 0, step = 1, onChange, pad = 2 }: TimeScrollerProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
-	const range = max - min + 1;
 
 	const handleWheel = useCallback(
 		(e: React.WheelEvent) => {

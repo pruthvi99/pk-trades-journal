@@ -168,10 +168,14 @@ export default function CalendarPage() {
 	useEffect(() => {
 		setLoading(true);
 		fetch(`/api/calendar?year=${year}&month=${month}`)
-			.then((r) => r.json())
-			.then((data) => {
-				setDays(data as CalendarDay[]);
+			.then((r) => {
+				if (!r.ok) return [];
+				return r.json();
 			})
+			.then((data) => {
+				setDays(Array.isArray(data) ? (data as CalendarDay[]) : []);
+			})
+			.catch(() => setDays([]))
 			.finally(() => setLoading(false));
 	}, [year, month]);
 

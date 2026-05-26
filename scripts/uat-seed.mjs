@@ -62,12 +62,37 @@ function wipeUATData() {
   }
 }
 
+// ─── Default tags (same as lib/db/seed-defaults.ts) ─────────────────────────
+const DEFAULT_TAGS = {
+  mistake: ['Overtrading','Revenge Trading','Risked Too Much','Ignored Stop','FOMO Entry','Chased Entry','No Plan','Early Exit','Moved Stop'],
+  setup: ['Breakout','VWAP Bounce','Mean Reversion','Trend Continuation','Support/Resistance','Gap Fill'],
+  context: ['High IV','Low IV','Earnings Play','FOMC/News','Low Volume','Trend Day'],
+  psychology: ['Followed Plan','Stayed Patient','Managed Emotions','Tilt','Hesitated'],
+};
+
+// ─── Seed default tags for a user ────────────────────────────────────────────
+function seedDefaultTags(userId) {
+  const now = nowUtc();
+  const stmt = db.prepare('INSERT OR IGNORE INTO tags (id, user_id, label, category, archived, created_at) VALUES (?, ?, ?, ?, 0, ?)');
+  const tagMap = {};
+  for (const [category, labels] of Object.entries(DEFAULT_TAGS)) {
+    for (const label of labels) {
+      const id = uuid();
+      stmt.run(id, userId, label, category, now);
+      tagMap[label] = id;
+    }
+  }
+  return tagMap;
+}
+
 // ─── Create user + seed defaults ─────────────────────────────────────────────
 function createUser(passcode, displayName, isAdmin = false) {
   const id = uuid();
   const now = nowUtc();
   db.prepare('INSERT INTO users (id, passcode, display_name, is_admin, created_at) VALUES (?, ?, ?, ?, ?)')
     .run(id, passcode, displayName, isAdmin ? 1 : 0, now);
+  // Seed 26 default tags (same as the app does on signup)
+  seedDefaultTags(id);
   return id;
 }
 
@@ -80,11 +105,14 @@ function createStrategy(userId, name, desc = null, instrument = null) {
   return id;
 }
 
-// ─── Create tag ───────────────────────────────────────────────────────────────
+// ─── Create tag (or return existing if already seeded) ───────────────────────
 function createTag(userId, label, category) {
+  // Check if already exists (from default seeding)
+  const existing = db.prepare('SELECT id FROM tags WHERE user_id = ? AND label = ?').get(userId, label);
+  if (existing) return existing.id;
   const id = uuid();
   const now = nowUtc();
-  db.prepare('INSERT INTO tags (id, user_id, label, category, archived, created_at) VALUES (?, ?, ?, ?, 0, ?)')
+  db.prepare('INSERT OR IGNORE INTO tags (id, user_id, label, category, archived, created_at) VALUES (?, ?, ?, ?, 0, ?)')
     .run(id, userId, label, category, now);
   return id;
 }
