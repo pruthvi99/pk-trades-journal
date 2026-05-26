@@ -248,7 +248,7 @@ export function DateTimePicker({
 					{/* Divider */}
 					<div className="h-px bg-pk-border mx-2" />
 
-					{/* Time selector */}
+					{/* Time selector — 12-hour format with AM/PM toggle */}
 					<div className="px-3 py-3 flex items-center gap-3">
 						<div className="flex items-center gap-1.5 flex-1">
 							{/* Clock icon */}
@@ -270,11 +270,21 @@ export function DateTimePicker({
 								/>
 							</svg>
 
-							{/* Hour */}
+							{/* Hour (12-hour format: 1–12) */}
 							<TimeScroller
-								value={getHours(selectedDate)}
-								max={23}
-								onChange={handleHourChange}
+								value={(() => {
+									const h = getHours(selectedDate);
+									const h12 = h % 12;
+									return h12 === 0 ? 12 : h12;
+								})()}
+								max={12}
+								min={1}
+								onChange={(h12) => {
+									const isPM = getHours(selectedDate) >= 12;
+									let h24 = h12 % 12; // 12 → 0
+									if (isPM) h24 += 12;
+									handleHourChange(h24);
+								}}
 								pad={2}
 							/>
 							<span className="text-pk-white-dim text-[13px]">:</span>
@@ -287,10 +297,24 @@ export function DateTimePicker({
 								pad={2}
 							/>
 
-							{/* AM/PM display */}
-							<span className="text-[11px] font-medium text-pk-white-dim ml-1 uppercase">
+							{/* AM/PM toggle button */}
+							<button
+								type="button"
+								onClick={() => {
+									const h = getHours(selectedDate);
+									// Toggle: if AM (0-11) → add 12; if PM (12-23) → subtract 12
+									handleHourChange(h < 12 ? h + 12 : h - 12);
+								}}
+								className={cn(
+									'ml-1 h-7 px-2 rounded-[4px] text-[11px] font-semibold uppercase tracking-wide transition-colors',
+									'border border-pk-border bg-pk-black-sunken',
+									'hover:border-pk-border-strong hover:text-pk-white',
+									'focus:outline-none focus:border-pk-purple',
+									getHours(selectedDate) >= 12 ? 'text-pk-purple-bright' : 'text-pk-white-muted',
+								)}
+							>
 								{getHours(selectedDate) >= 12 ? 'PM' : 'AM'}
-							</span>
+							</button>
 						</div>
 
 						{/* Now button */}
@@ -502,24 +526,26 @@ export function DatePicker({
 interface TimeScrollerProps {
 	value: number;
 	max: number;
+	min?: number;
 	step?: number;
 	onChange: (v: number) => void;
 	pad?: number;
 }
 
-function TimeScroller({ value, max, step = 1, onChange, pad = 2 }: TimeScrollerProps) {
+function TimeScroller({ value, max, min = 0, step = 1, onChange, pad = 2 }: TimeScrollerProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
+	const range = max - min + 1;
 
 	const handleWheel = useCallback(
 		(e: React.WheelEvent) => {
 			e.preventDefault();
 			const delta = e.deltaY > 0 ? -step : step;
 			let next = value + delta;
-			if (next < 0) next = max + 1 + next;
-			if (next > max) next = next - max - 1;
+			if (next > max) next = min + (next - max - 1);
+			if (next < min) next = max - (min - next - 1);
 			onChange(next);
 		},
-		[value, max, step, onChange],
+		[value, max, min, step, onChange],
 	);
 
 	const handleKeyDown = useCallback(
@@ -527,32 +553,32 @@ function TimeScroller({ value, max, step = 1, onChange, pad = 2 }: TimeScrollerP
 			if (e.key === 'ArrowUp') {
 				e.preventDefault();
 				let next = value + step;
-				if (next > max) next = 0;
+				if (next > max) next = min;
 				onChange(next);
 			} else if (e.key === 'ArrowDown') {
 				e.preventDefault();
 				let next = value - step;
-				if (next < 0) next = max + 1 + next;
+				if (next < min) next = max;
 				// Snap to nearest step
-				next = Math.round(next / step) * step;
-				if (next < 0) next = 0;
+				next = Math.round((next - min) / step) * step + min;
+				if (next < min) next = min;
 				onChange(next);
 			}
 		},
-		[value, max, step, onChange],
+		[value, max, min, step, onChange],
 	);
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			const raw = e.target.value.replace(/\D/g, '');
 			const num = Number.parseInt(raw, 10);
-			if (!Number.isNaN(num) && num >= 0 && num <= max) {
+			if (!Number.isNaN(num) && num >= min && num <= max) {
 				// Snap to nearest step
-				const snapped = Math.round(num / step) * step;
+				const snapped = Math.round((num - min) / step) * step + min;
 				onChange(Math.min(snapped, max));
 			}
 		},
-		[max, step, onChange],
+		[max, min, step, onChange],
 	);
 
 	return (
